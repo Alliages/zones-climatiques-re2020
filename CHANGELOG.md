@@ -7,6 +7,14 @@ Numérotation [SemVer](https://semver.org/lang/fr/) :
 
 La version est définie par la constante `VERSION` en tête de `scripts/build_map.py`, affichée en pied de page et reportée en tag git (`vX.Y.Z`).
 
+## [1.0.3] — 18/10/2026
+
+### Modifié
+- La couche « Massifs montagneux » (contours Natural Earth) est remplacée par une couche « Altitude » issue d'un modèle numérique de terrain : hachures à 45° au-dessus de 400 m, hachures à 135° ajoutées au-dessus de 800 m (quadrillage). Les noms des massifs restent affichés comme repères. Légende intégrée à l'interrupteur.
+
+### Données
+- `data/altitude_re2020.geojson` (133 Ko) : MNT France métropolitaine (~90 m, EPSG:4326) agrégé à ~500 m, deux surfaces emboîtées (> 400 m, > 800 m), îlots et creux de moins de 70 km² retirés, contour simplifié à ~1 km. Scripts de calcul dans `scripts/altitude/` (le MNT source, 140 Mo, n'est pas versionné).
+
 ## [1.0.2] — 17/10/2026
 
 ### Ajouté

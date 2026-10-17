@@ -14,8 +14,12 @@ Liste des modifications à apporter dans les prochaines versions. Chaque ligne c
 
 ## Cartographie
 - [ ] Ajouter un lien vers la carte NV50
+- [x] Afficher l'altitude : classes 400–800 m et > 800 m en hachures, à la place des massifs (→ 1.0.3)
 
 ## Interface
 - [x] Favicon de l'application (→ 1.0.2)
 - [ ] Option de couleurs sombres pour la palette des zones
 - [ ] Ajouter une partie explication
+
+## Outillage
+- [ ] GitHub Action : à chaque push sur `main`, lire `VERSION` dans `scripts/build_map.py` et créer automatiquement le tag `vX.Y.Z` et la release (description tirée du `CHANGELOG.md`) si le tag n'existe pas encore

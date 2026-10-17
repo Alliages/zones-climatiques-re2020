@@ -1,7 +1,7 @@
 """Carte des zones climatiques RE2020.
 
 Couches : mers en dégradé, pays voisins, départements, limites de zones,
-lacs, fleuves, massifs montagneux, libellés (zones, villes, départements, pays, mers),
+lacs, fleuves, altitude (classes RE2020 > 400 m et > 800 m), libellés (zones, villes, départements, pays, mers),
 nombre de logements (INSEE, RP 2022) par département et par zone.
 
 Usage :
@@ -11,6 +11,7 @@ Usage :
 import datetime
 import json
 import math
+import os
 import sys
 
 from shapely.geometry import shape, box, mapping, Polygon
@@ -19,7 +20,7 @@ from shapely.ops import unary_union, polylabel
 # ---------------------------------------------------------------------------
 # Paramètres (regroupés en tête pour la lisibilité)
 # ---------------------------------------------------------------------------
-VERSION = "1.0.2"             # version de la carte (SemVer) — à reporter dans CHANGELOG.md et en tag git
+VERSION = "1.0.3"             # version de la carte (SemVer) — à reporter dans CHANGELOG.md et en tag git
 BUILD_DATE = datetime.date.today().strftime("%d/%m/%Y")   # date de génération affichée en pied de page
 REPO_URL = "https://github.com/Alliages/zones-climatiques-re2020"
 # Icônes de l'onglet (fichiers à la racine du dépôt, à côté de index.html)
@@ -44,7 +45,11 @@ RIVERS_SECOND = {"Marne", "Yonne", "Saône", "Sane", "Doubs", "Tarn", "Durance",
                  "Somme", "Aveyron", "Ariège", "Sarthe", "Mayenne", "Aube", "Eure", "Oise",
                  "Aude", "Ill", "Sarre"}
 
-# Massifs montagneux (nom Natural Earth → libellé affiché)
+# Altitude : classes RE2020 issues du MNT (voir scripts/altitude/), deux surfaces emboîtées
+ALTITUDE_PATH = os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "data", "altitude_re2020.geojson")
+ALTITUDE_CLASSES = ["400+", "800+"]     # « 400+ » : hachures 45° ; « 800+ » : + hachures 135° (quadrillage)
+
+# Noms des massifs affichés avec la couche Altitude (nom Natural Earth → libellé) — repères de lecture
 MASSIFS = {"ALPS": "Alpes", "PYRENEES": "Pyrénées", "Massif Central": "Massif central",
            "Jura": "Jura", "Vosges": "Vosges"}
 
@@ -235,9 +240,13 @@ for fn in ("ne_10m_rivers_lake_centerlines", "ne_10m_rivers_europe"):
         if g.intersects(france_buf):
             rivers[cls].append(geom_d(g.intersection(france_buf).simplify(0.002)))
 
-# 6. Massifs montagneux (découpés à la France)
+# 6. Altitude (classes RE2020 > 400 m et > 800 m) + noms des massifs comme repères
+alt_geo = json.load(open(ALTITUDE_PATH, encoding="utf-8"))
+alt_geoms = {f["properties"]["classe"]: shape(f["geometry"]) for f in alt_geo["features"]}
+altitude_paths = [f'<path class="alt alt-{c[:3]}" d="{geom_d(alt_geoms[c])}"/>' for c in ALTITUDE_CLASSES]
+
 regions = load("ne_10m_geography_regions_polys")
-massif_paths, massif_labels = [], []
+massif_labels = []
 for f in regions["features"]:
     nm = f["properties"].get("NAME")
     if nm not in MASSIFS:
@@ -245,7 +254,6 @@ for f in regions["features"]:
     g = shape(f["geometry"]).buffer(0).intersection(france)
     if g.is_empty:
         continue
-    massif_paths.append(f'<path d="{geom_d(g)}"/>')
     biggest = max(g.geoms, key=lambda p: p.area) if g.geom_type == "MultiPolygon" else g
     pt = polylabel(biggest, tolerance=0.01)
     x, y = proj(pt.x, pt.y)
@@ -306,7 +314,7 @@ for key, val in {
     "__PATHS__": dep_paths, "__ZONEBORDERS__": zone_border_d,
     "__LAKES__": lake_d,
     "__RIVERS_MAIN__": "".join(rivers["main"]), "__RIVERS_SECOND__": "".join(rivers["second"]),
-    "__MASSIFS__": "\n".join(massif_paths), "__MASSIF_LABELS__": "\n".join(massif_labels),
+    "__ALTITUDE__": "\n".join(altitude_paths), "__MASSIF_LABELS__": "\n".join(massif_labels),
     "__ZONELABELS__": "\n".join(zone_labels), "__CITIES__": "\n".join(city_svg),
     "__CONTEXT__": "\n".join(context_svg),
     "__DEPLABELS__": "\n".join(dep_labels),
@@ -330,4 +338,4 @@ index = ('<!doctype html>\n<html lang="fr">\n<head>\n<meta charset="utf-8">\n'
          f'<link rel="apple-touch-icon" href="{APPLE_TOUCH_ICON}">\n'
          + head + "\nbody { margin: 0; }\n" + sep + "\n</head>\n<body>\n" + rest + "\n</body>\n</html>\n")
 open(INDEX_PATH, "w", encoding="utf-8").write(index)
-print("OK", VIEW_W, VIEW_H, len(html), {k: len(v) for k, v in rivers.items()}, len(massif_paths))
+print("OK", VIEW_W, VIEW_H, len(html), {k: len(v) for k, v in rivers.items()}, len(altitude_paths))

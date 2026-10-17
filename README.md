@@ -4,14 +4,14 @@ Carte interactive des 96 départements de France métropolitaine colorés selon 
 
 **Voir la carte : https://alliages.github.io/zones-climatiques-re2020/**
 
-Version actuelle : **1.0.2**. Historique dans [CHANGELOG.md](CHANGELOG.md), évolutions prévues dans [ROADMAP.md](ROADMAP.md).
+Version actuelle : **1.0.3**. Historique dans [CHANGELOG.md](CHANGELOG.md), évolutions prévues dans [ROADMAP.md](ROADMAP.md).
 
 ## Ce que montre la page
 
 - La zone climatique de chaque département, avec les limites et le nom des zones.
 - Une fiche par département au survol ou au toucher : région, zone, nombre de logements et répartition résidences principales, secondaires et vacantes.
 - Le parc de logements par zone, en millions et en part du total métropolitain.
-- Des couches activables : villes, noms des départements (masqués par défaut), mers, fleuves et pays voisins, massifs montagneux.
+- Des couches activables : villes, noms des départements (masqués par défaut), mers, fleuves et pays voisins, altitude (400–800 m et plus de 800 m).
 
 ## Fichiers
 
@@ -19,6 +19,7 @@ Version actuelle : **1.0.2**. Historique dans [CHANGELOG.md](CHANGELOG.md), évo
 |---|---|
 | `index.html` | La page, autonome (aucune dépendance hormis les polices Google Fonts) |
 | `data/zones_departements.txt` | Région, numéro, département, zone (séparateur `\|`) |
+| `data/altitude_re2020.geojson` | Classes d'altitude > 400 m et > 800 m (issues du MNT, simplifiées) |
 | `data/logements_insee_2022.txt` | Département, logements, % résidences principales, % secondaires, % vacants |
 | `scripts/build_map.py` | Génère `index.html` à partir des données et du gabarit |
 | `scripts/template.html` | Gabarit HTML/CSS/JS de la page |
@@ -40,6 +41,16 @@ python3 scripts/build_map.py geo data/zones_departements.txt scripts/template.ht
   /tmp/apercu.html data/logements_insee_2022.txt index.html
 ```
 
+## Recalculer la couche Altitude
+
+À partir d'un MNT GeoTIFF de la France métropolitaine (non versionné, ~140 Mo) :
+
+```bash
+pip install rasterio shapely matplotlib
+python3 scripts/altitude/classes_altitude_france.py France_metropolitaine.tif geo /tmp/alt      # classes brutes (~4 min)
+python3 scripts/altitude/simplifier_altitude.py /tmp/alt/classes_altitude_re2020.geojson data/altitude_re2020.geojson
+```
+
 ## Publier une nouvelle version
 
 1. Modifier `VERSION` en tête de `scripts/build_map.py` (correctif 1.0.x, mineure 1.x.0, majeure x.0.0).
@@ -54,4 +65,4 @@ python3 scripts/build_map.py geo data/zones_departements.txt scripts/template.ht
 - Contours des départements : [france-geojson](https://github.com/gregoiredavid/france-geojson) (Grégoire David).
 - Fleuves, lacs, pays voisins, massifs : [Natural Earth](https://www.naturalearthdata.com/).
 
-Les contours des massifs sont indicatifs et ne correspondent pas aux classes d'altitude que la RE2020 applique en plus de la zone climatique.
+La couche Altitude est indicative : la classe d'altitude RE2020 d'un projet se détermine à l'altitude réelle du terrain.

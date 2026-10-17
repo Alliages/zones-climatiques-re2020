@@ -106,9 +106,13 @@ svg[data-focus="H2d"] .z-H2d, svg[data-focus="H3"] .z-H3 { opacity: 1; }
 .rivers.main { stroke-width: 1.7; }
 .rivers.second { stroke-width: .9; opacity: .6; }
 
-/* Massifs (essai) */
-.massifs path { fill: url(#hatch); stroke: var(--relief); stroke-width: 1.2; stroke-dasharray: 4 3; opacity: .85; pointer-events: none; }
-.hatch-line { stroke: var(--relief); stroke-width: 1.4; opacity: .38; }
+/* Altitude : > 400 m hachuré à 45°, > 800 m ajoute des hachures à 135° (quadrillage cumulé) */
+.alt { stroke: var(--relief); stroke-linejoin: round; pointer-events: none; }
+.alt-400 { fill: url(#hatch45); stroke-width: 1; stroke-opacity: .7; }
+.alt-800 { fill: url(#hatch135); stroke-width: .6; stroke-opacity: .45; }
+.hatch-line { stroke: var(--relief); stroke-width: 1.3; opacity: .42; }
+.swatch-alt { width: 22px; height: 14px; border-radius: 2px; border: 1px solid var(--relief); flex: none; }
+.toggle small .alt-key { display: inline-flex; align-items: center; gap: 6px; margin-right: 10px; margin-top: 3px; }
 .mlabel {
   font-family: var(--font-body); font-style: italic; font-size: 17px; fill: var(--relief);
   text-anchor: middle; paint-order: stroke; stroke: var(--zone-halo); stroke-width: 4px; pointer-events: none;
@@ -218,7 +222,11 @@ footer a { color: var(--accent); }
             <stop offset="1" style="stop-color: var(--sea-deep)"/>
           </linearGradient>
           <filter id="blur" x="-10%" y="-10%" width="120%" height="120%"><feGaussianBlur stdDeviation="16"/></filter>
-          <pattern id="hatch" width="8" height="8" patternUnits="userSpaceOnUse" patternTransform="rotate(45)">
+          <!-- Hachures de l'altitude : 45° (> 400 m) et 135° (ajoutées au-dessus de 800 m) -->
+          <pattern id="hatch45" width="8" height="8" patternUnits="userSpaceOnUse" patternTransform="rotate(45)">
+            <line class="hatch-line" x1="0" y1="0" x2="0" y2="8"/>
+          </pattern>
+          <pattern id="hatch135" width="8" height="8" patternUnits="userSpaceOnUse" patternTransform="rotate(-45)">
             <line class="hatch-line" x1="0" y1="0" x2="0" y2="8"/>
           </pattern>
         </defs>
@@ -244,9 +252,9 @@ __PATHS__
           <path class="rivers main" d="__RIVERS_MAIN__"/>
         </g>
 
-        <!-- Essai : massifs montagneux -->
-        <g class="layer-relief massifs">
-__MASSIFS__
+        <!-- Altitude (classes RE2020, MNT) : surfaces emboîtées > 400 m puis > 800 m -->
+        <g class="layer-relief">
+__ALTITUDE__
         </g>
 
         <!-- Étiquettes -->
@@ -301,7 +309,7 @@ __CITIES__
             <span class="track"></span>
           </label>
           <label class="toggle" for="t-relief">
-            <span>Massifs montagneux<small>Alpes, Pyrénées, Massif central, Jura, Vosges</small></span>
+            <span>Altitude<small><span class="alt-key"><svg class="swatch-alt" viewBox="0 0 22 14" aria-hidden="true"><rect width="22" height="14" fill="url(#hatch45)"/></svg>400 – 800 m</span><span class="alt-key"><svg class="swatch-alt" viewBox="0 0 22 14" aria-hidden="true"><rect width="22" height="14" fill="url(#hatch45)"/><rect width="22" height="14" fill="url(#hatch135)"/></svg>&gt; 800 m</span></small></span>
             <input type="checkbox" id="t-relief" checked>
             <span class="track"></span>
           </label>
@@ -311,8 +319,8 @@ __CITIES__
   </div>
 
   <footer>
-    <p>Zones issues du tableau fourni, découpage départemental. Logements : Insee, recensement de la population 2022 (résidences principales, secondaires, occasionnelles et logements vacants). Fleuves, lacs, pays voisins et massifs : Natural Earth.</p>
-    <p>Les contours des massifs sont indicatifs. Ils ne correspondent pas aux classes d'altitude que la RE2020 applique en plus de la zone climatique.</p>
+    <p>Zones issues du tableau fourni, découpage départemental. Logements : Insee, recensement de la population 2022 (résidences principales, secondaires, occasionnelles et logements vacants). Fleuves, lacs, pays voisins et noms des massifs : Natural Earth.</p>
+    <p>Altitude : modèle numérique de terrain (~90 m) agrégé à ~500 m, classes 400–800 m et &gt; 800 m, îlots et creux de moins de 70 km² retirés, contour simplifié à ~1 km. Représentation indicative : la classe d'altitude RE2020 d'un projet se détermine à l'altitude réelle du terrain.</p>
     <p class="version">Version __VERSION__ · générée le __BUILD_DATE__ · <a href="__REPO_URL__">code source et historique des versions</a></p>
   </footer>
 </div>

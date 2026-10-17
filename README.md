@@ -4,7 +4,7 @@ Carte interactive des 96 départements de France métropolitaine colorés selon 
 
 **Voir la carte : https://alliages.github.io/zones-climatiques-re2020/**
 
-Version actuelle : **1.0.0**. Historique dans [CHANGELOG.md](CHANGELOG.md), évolutions prévues dans [ROADMAP.md](ROADMAP.md).
+Version actuelle : **1.0.1**. Historique dans [CHANGELOG.md](CHANGELOG.md), évolutions prévues dans [ROADMAP.md](ROADMAP.md).
 
 ## Ce que montre la page
 

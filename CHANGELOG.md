@@ -7,6 +7,17 @@ Numérotation [SemVer](https://semver.org/lang/fr/) :
 
 La version est définie par la constante `VERSION` en tête de `scripts/build_map.py`, affichée en pied de page et reportée en tag git (`vX.Y.Z`).
 
+## [1.0.1] — 17/10/2026
+
+### Corrigé
+- Enclave des Papes (îlot du Vaucluse entouré par la Drôme) : l'îlot n'a plus de liseré blanc au repos et se fond dans la zone H2d. Il reste cliquable et ouvre la fiche du Vaucluse. La détection est automatique et s'applique aussi aux autres îlots du fond de carte (Hautes-Pyrénées dans les Pyrénées-Atlantiques, Nord dans le Pas-de-Calais), tous dans la même zone que leur hôte.
+
+### Ajouté
+- Villes repères pour la zone H2d : Avignon et Valence.
+
+### Modifié
+- Étiquette « H2d » déplacée vers le sud-ouest pour ne pas chevaucher Valence.
+
 ## [1.0.0] — 17/10/2026
 
 Première mise en ligne.

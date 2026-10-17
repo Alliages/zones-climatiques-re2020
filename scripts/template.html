@@ -89,6 +89,7 @@ svg.show-deps .zlabel, svg.show-deps .mlabel { opacity: .28; }
   transition: opacity .2s ease; cursor: pointer;
 }
 .dep:hover, .dep.active { stroke: var(--on-zone); stroke-width: 2.2; }
+.dep.enclave:not(:hover):not(.active) { stroke: none; }   /* îlot enclavé : pas de liseré au repos */
 svg[data-focus] .dep { opacity: .2; }
 svg[data-focus="H1a"] .z-H1a, svg[data-focus="H1b"] .z-H1b, svg[data-focus="H1c"] .z-H1c,
 svg[data-focus="H2a"] .z-H2a, svg[data-focus="H2b"] .z-H2b, svg[data-focus="H2c"] .z-H2c,

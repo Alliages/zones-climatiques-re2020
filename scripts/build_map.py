@@ -13,13 +13,13 @@ import json
 import math
 import sys
 
-from shapely.geometry import shape, box, mapping
+from shapely.geometry import shape, box, mapping, Polygon
 from shapely.ops import unary_union, polylabel
 
 # ---------------------------------------------------------------------------
 # Paramètres (regroupés en tête pour la lisibilité)
 # ---------------------------------------------------------------------------
-VERSION = "1.0.0"             # version de la carte (SemVer) — à reporter dans CHANGELOG.md et en tag git
+VERSION = "1.0.1"             # version de la carte (SemVer) — à reporter dans CHANGELOG.md et en tag git
 BUILD_DATE = datetime.date.today().strftime("%d/%m/%Y")   # date de génération affichée en pied de page
 REPO_URL = "https://github.com/Alliages/zones-climatiques-re2020"
 GEO_DIR, TABLE_PATH, TEMPLATE_PATH, OUT_PATH, LOGEMENTS_PATH, INDEX_PATH = sys.argv[1:7]
@@ -55,6 +55,7 @@ CITIES = [
     ("Besançon", 6.02, 47.24, "start"), ("Poitiers", 0.34, 46.58, "start"),
     ("Limoges", 1.26, 45.83, "start"), ("Clermont-Ferrand", 3.09, 45.78, "below"),
     ("Lyon", 4.84, 45.76, "start"), ("Grenoble", 5.72, 45.19, "start"),
+    ("Valence", 4.89, 44.93, "start"), ("Avignon", 4.81, 43.95, "end"),
     ("Bordeaux", -0.58, 44.84, "end"), ("Agen", 0.62, 44.20, "start"),
     ("Pau", -0.37, 43.30, "end"),
     ("Toulouse", 1.44, 43.60, "start"), ("Montpellier", 3.88, 43.61, "start"),
@@ -73,7 +74,7 @@ CONTEXT_LABELS = [
 
 # Décalages manuels des étiquettes de zones (pixels du viewBox), si besoin
 ZONE_LABEL_NUDGE = {"H2a": (35, 22), "H2b": (-40, 40), "H2c": (-55, 20),
-                    "H1b": (-70, -15), "H3": (-10, -6)}
+                    "H1b": (-70, -15), "H3": (-10, -6), "H2d": (-35, 35)}
 
 # ---------------------------------------------------------------------------
 # Chargement des données
@@ -139,9 +140,37 @@ def boundary_d(g):
 # Couches
 # ---------------------------------------------------------------------------
 # 1. Départements
+# Les enclaves (ex. Enclave des Papes : îlot du Vaucluse entouré par la Drôme) sont
+# détectées automatiquement : le département hôte est dessiné sans son trou, et
+# l'îlot est posé par-dessus dans un chemin à part, sans liseré (classe « enclave »).
+def polygon_parts(g):
+    return list(g.geoms) if g.geom_type == "MultiPolygon" else [g]
+
+hosts = {c: Polygon(max(polygon_parts(g), key=lambda p: p.area).exterior)
+         for c, g in dep_shapes.items()}
+enclaves = []                      # (code de l'enclave, polygone)
+host_codes = set()                 # départements qui contiennent une enclave
+for c, g in dep_shapes.items():
+    for part in polygon_parts(g):
+        for h, hull in hosts.items():
+            if h != c and hull.contains(part.representative_point()) and hull.area > part.area:
+                enclaves.append((c, part))
+                host_codes.add(h)
+                break
+
+def dep_geom_for_drawing(c, g):
+    """Géométrie dessinée : sans les îlots enclavés, et sans trou pour un hôte."""
+    parts = [p for p in polygon_parts(g) if not any(e.equals(p) for _, e in enclaves)]
+    if c in host_codes:
+        parts = [Polygon(p.exterior) for p in parts]
+    return unary_union(parts)
+
 dep_paths = "\n".join(
-    f'<path class="dep z-{data[c]["z"]}" data-code="{c}" d="{geom_d(g)}"/>'
-    for c, g in dep_shapes.items())
+    [f'<path class="dep z-{data[c]["z"]}" data-code="{c}" d="{geom_d(dep_geom_for_drawing(c, g))}"/>'
+     for c, g in dep_shapes.items()]
+    + [f'<path class="dep enclave z-{data[c]["z"]}" data-code="{c}" d="{geom_d(p)}"/>'
+       for c, p in enclaves])
+print("Enclaves détectées :", [(c, round(p.area, 4)) for c, p in enclaves], "hôtes :", sorted(host_codes))
 
 # 2. Zones fusionnées : contours épais + position des étiquettes
 zone_union = {}

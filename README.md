@@ -4,13 +4,13 @@ Carte interactive des 96 départements de France métropolitaine colorés selon 
 
 **Voir la carte : https://alliages.github.io/zones-climatiques-re2020/**
 
-Version actuelle : **1.1.0**. Historique dans [CHANGELOG.md](CHANGELOG.md), évolutions prévues dans [ROADMAP.md](ROADMAP.md).
+Version actuelle : **1.1.1**. Historique dans [CHANGELOG.md](CHANGELOG.md), évolutions prévues dans [ROADMAP.md](ROADMAP.md).
 
 ## Ce que montre la page
 
-- La zone climatique de chaque département, avec les limites et le nom des zones.
+- La zone climatique de chaque département, avec les limites et le nom des zones. Les couleurs des zones vont du plus clair au plus foncé selon leur DH médian.
 - Une fiche par département au survol ou au toucher : région, zone, nombre de logements et répartition résidences principales, secondaires et vacantes.
-- Le degré-heures (DH) médian par zone, issu de l'open data OPEE (bâtiments conformes), avec les repères 350 et 1 250 °C.h.
+- Le degré-heures (DH) médian par zone, issu de l'open data OPEE (sélection de logements collectifs conformes), avec les repères 350 et 1 250 °C.h.
 - Le parc de logements par zone, en millions et en part du total métropolitain.
 - Des boîtes dépliables dans la colonne de droite, dont l'état est mémorisé par le navigateur.
 - Des couches activables : villes, noms des départements (masqués par défaut), mers, fleuves et pays voisins, altitude (400–800 m et plus de 800 m).

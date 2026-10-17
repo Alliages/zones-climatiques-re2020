@@ -20,10 +20,16 @@
   --muted: #74685a;
   --line: #ddd6ca;
   --accent: #c4500f;
-  /* Palette des zones : du jaune (H1a) à l'orange brûlé (H3) — identique dans les deux thèmes */
-  --H1a: #fbdf72; --H1b: #f9cf52; --H1c: #f6bd3a;
-  --H2a: #f4a930; --H2b: #f09528; --H2c: #e88021; --H2d: #da691a;
-  --H3:  #c25212;
+  /* Palette des zones : du jaune au brun-orangé, attribuée par ordre croissant de DH médian
+     (générée par build_map.py) — identique dans les deux thèmes */
+  --H2a: #fbdf72;
+  --H1c: #f9cf52;
+  --H1b: #f6bd3a;
+  --H2c: #f4a930;
+  --H1a: #f09528;
+  --H2b: #e88021;
+  --H2d: #da691a;
+  --H3: #c25212;
   --on-zone: #2b2219;                       /* texte posé sur les aplats de zone */
   --zone-halo: rgba(255, 249, 232, .72);
   --zone-line: rgba(70, 38, 10, .78);       /* limites entre zones */
@@ -605,7 +611,7 @@ body { margin: 0; }
       </details>
 
       <details class="box" id="box-dh" open>
-        <summary class="panel-title">DH médians · OPEE</summary>
+        <summary class="panel-title">DH médians · collectifs · OPEE</summary>
         <div class="dh" id="dh"></div>
         <p class="housing-total" id="dh-total"></p>
       </details>
@@ -621,8 +627,8 @@ body { margin: 0; }
   <footer>
     <p>Zones issues du tableau fourni, découpage départemental. Logements : Insee, recensement de la population 2022 (résidences principales, secondaires, occasionnelles et logements vacants). Fleuves, lacs, pays voisins et noms des massifs : Natural Earth.</p>
     <p>Altitude : modèle numérique de terrain (~90 m) agrégé à ~500 m, classes 400–800 m et &gt; 800 m, îlots et creux de moins de 70 km² retirés, contour simplifié à ~1 km. Représentation indicative : la classe d'altitude RE2020 d'un projet se détermine à l'altitude réelle du terrain.</p>
-    <p>DH (degrés-heures d'inconfort estival) : médiane par zone des bâtiments conformes de l'open data OPEE (RE2020), extraction du 18/10/2026. Traits de référence à 350 °C.h et 1 250 °C.h.</p>
-    <p class="version">Version 1.1.0 · générée le 18/10/2026 · <a href="https://github.com/Alliages/zones-climatiques-re2020">code source et historique des versions</a></p>
+    <p>DH (degrés-heures d'inconfort estival) : médiane par zone d'une sélection de logements collectifs conformes de l'open data OPEE (RE2020), extraction du 18/10/2026. Traits de référence à 350 °C.h et 1 250 °C.h. Les couleurs des zones vont du plus clair au plus foncé selon leur DH médian.</p>
+    <p class="version">Version 1.1.1 · générée le 18/10/2026 · <a href="https://github.com/Alliages/zones-climatiques-re2020">code source et historique des versions</a></p>
   </footer>
 </div>
 
@@ -733,7 +739,9 @@ axis.className = "dhrow axis";
 axis.innerHTML = `<span></span><span class="dhtrack">${DH_REFS.map(r =>
   `<span class="tick" style="left:${pos(r)}">${NF.format(r)}</span>`).join("")}</span><span class="val">°C.h</span><span class="nb">bât.</span>`;
 dhBox.appendChild(axis);
-for (const z of ZONE_ORDER) {
+// Lignes triées par DH médian croissant (même ordre que les couleurs des zones)
+const DH_ORDER = Object.keys(DH.zones).sort((a, b) => DH.zones[a].m - DH.zones[b].m);
+for (const z of DH_ORDER) {
   const d = DH.zones[z];
   if (!d) continue;
   const row = document.createElement("div");
@@ -749,8 +757,10 @@ for (const z of ZONE_ORDER) {
   dhBox.appendChild(row);
 }
 if (DH.all) {
-  dhTotal.textContent = `Toutes zones : médiane ${NF.format(DH.all.m)} °C.h sur ${NF.format(DH.all.n)} bâtiments conformes. ` +
-    `Traits : 350 °C.h (pénalité dans le Cep au-delà) et 1 250 °C.h (DH max).`;
+  dhTotal.textContent = `Sélection de logements collectifs (bâtiments conformes). ` +
+    `Toutes zones : médiane ${NF.format(DH.all.m)} °C.h sur ${NF.format(DH.all.n)} bâtiments. ` +
+    `Traits : 350 °C.h (pénalité dans le Cep au-delà) et 1 250 °C.h (DH max). ` +
+    `Les couleurs des zones suivent l'ordre des DH médians.`;
 }
 
 // ---------------------------------------------------------------------------

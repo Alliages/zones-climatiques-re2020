@@ -21,7 +21,7 @@ from shapely.ops import unary_union, polylabel
 # ---------------------------------------------------------------------------
 # Paramètres (regroupés en tête pour la lisibilité)
 # ---------------------------------------------------------------------------
-VERSION = "1.1.0"             # version de la carte (SemVer) — à reporter dans CHANGELOG.md et en tag git
+VERSION = "1.1.1"             # version de la carte (SemVer) — à reporter dans CHANGELOG.md et en tag git
 BUILD_DATE = datetime.date.today().strftime("%d/%m/%Y")   # date de génération affichée en pied de page
 REPO_URL = "https://github.com/Alliages/zones-climatiques-re2020"
 # Icônes de l'onglet (fichiers à la racine du dépôt, à côté de index.html)
@@ -55,6 +55,8 @@ DH_PATH = os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "data",
 DH_EXTRACTION = "18/10/2026"            # date d'extraction OPEE affichée dans la note de source
 DH_REFS = [350, 1250]                   # traits de référence (°C.h) : seuil bas et DH max courant
 DH_SCALE_MAX = 1300                     # borne de l'échelle des barres (°C.h)
+# Palette des zones, du plus clair au plus foncé : attribuée aux zones par DH médian croissant
+PALETTE_ZONES = ["#fbdf72", "#f9cf52", "#f6bd3a", "#f4a930", "#f09528", "#e88021", "#da691a", "#c25212"]
 
 # Noms des massifs affichés avec la couche Altitude (nom Natural Earth → libellé) — repères de lecture
 MASSIFS = {"ALPS": "Alpes", "PYRENEES": "Pyrénées", "Massif Central": "Massif central",
@@ -321,6 +323,12 @@ def lire_dh(path):
 
 dh = lire_dh(DH_PATH)
 
+# Couleurs des zones dans l'ordre du DH médian (la plus claire pour le DH le plus bas)
+ordre_dh = sorted(dh["zones"], key=lambda z: dh["zones"][z]["m"])
+assert sorted(ordre_dh) == sorted(ZONES), "DH manquant pour une zone"
+zone_colors_css = "\n".join(f"  --{z}: {PALETTE_ZONES[i]};" for i, z in enumerate(ordre_dh))
+print("Ordre DH :", " < ".join(ordre_dh))
+
 # ---------------------------------------------------------------------------
 # Assemblage
 # ---------------------------------------------------------------------------
@@ -341,6 +349,7 @@ for key, val in {
     "__ZONELABELS__": "\n".join(zone_labels), "__CITIES__": "\n".join(city_svg),
     "__CONTEXT__": "\n".join(context_svg),
     "__DEPLABELS__": "\n".join(dep_labels),
+    "__ZONE_COLORS__": zone_colors_css,
     "__DH__": json.dumps(dh), "__DH_DATE__": DH_EXTRACTION,
     "__DH_REFS__": json.dumps(DH_REFS), "__DH_SCALE__": str(DH_SCALE_MAX),
     "__VERSION__": VERSION, "__BUILD_DATE__": BUILD_DATE, "__REPO_URL__": REPO_URL,

@@ -7,6 +7,12 @@ Numérotation [SemVer](https://semver.org/lang/fr/) :
 
 La version est définie par la constante `VERSION` en tête de `scripts/build_map.py`, affichée en pied de page et reportée en tag git (`vX.Y.Z`).
 
+## [1.1.1] — 18/10/2026
+
+### Modifié
+- Couleurs des zones attribuées dans l'ordre croissant du DH médian, sur toute la page (carte, légende, fiche, boîtes) : la plus claire pour H2a (216 °C.h), puis H1c, H1b, H2c, H1a, H2b, H2d, la plus foncée pour H3 (1 103 °C.h). La palette est générée par `scripts/build_map.py` (`PALETTE_ZONES`) à partir de `data/dh_median_opee.csv`.
+- Boîte DH : lignes triées par DH médian croissant, titre « DH médians · collectifs · OPEE », note précisant qu'il s'agit d'une sélection de logements collectifs.
+
 ## [1.1.0] — 18/10/2026
 
 ### Ajouté

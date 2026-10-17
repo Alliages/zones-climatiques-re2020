@@ -7,6 +7,11 @@ Numérotation [SemVer](https://semver.org/lang/fr/) :
 
 La version est définie par la constante `VERSION` en tête de `scripts/build_map.py`, affichée en pied de page et reportée en tag git (`vX.Y.Z`).
 
+## [1.0.2] — 17/10/2026
+
+### Ajouté
+- Favicon : l'Hexagone découpé en trois bandes aux couleurs des zones H1, H2 et H3. Fichiers `favicon.svg` (navigateurs récents), `favicon-32.png` (repli) et `apple-touch-icon.png` (écran d'accueil iPhone / iPad), déclarés dans l'en-tête généré par `scripts/build_map.py`.
+
 ## [1.0.1] — 17/10/2026
 
 ### Corrigé

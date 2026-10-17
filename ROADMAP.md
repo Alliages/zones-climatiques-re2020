@@ -16,5 +16,6 @@ Liste des modifications à apporter dans les prochaines versions. Chaque ligne c
 - [ ] Ajouter un lien vers la carte NV50
 
 ## Interface
+- [x] Favicon de l'application (→ 1.0.2)
 - [ ] Option de couleurs sombres pour la palette des zones
 - [ ] Ajouter une partie explication

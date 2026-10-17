@@ -19,9 +19,13 @@ from shapely.ops import unary_union, polylabel
 # ---------------------------------------------------------------------------
 # Paramètres (regroupés en tête pour la lisibilité)
 # ---------------------------------------------------------------------------
-VERSION = "1.0.1"             # version de la carte (SemVer) — à reporter dans CHANGELOG.md et en tag git
+VERSION = "1.0.2"             # version de la carte (SemVer) — à reporter dans CHANGELOG.md et en tag git
 BUILD_DATE = datetime.date.today().strftime("%d/%m/%Y")   # date de génération affichée en pied de page
 REPO_URL = "https://github.com/Alliages/zones-climatiques-re2020"
+# Icônes de l'onglet (fichiers à la racine du dépôt, à côté de index.html)
+FAVICON_SVG = "favicon.svg"             # navigateurs récents
+FAVICON_PNG = "favicon-32.png"          # repli pour les navigateurs sans prise en charge du SVG
+APPLE_TOUCH_ICON = "apple-touch-icon.png"   # écran d'accueil iPhone / iPad (180 × 180 px)
 GEO_DIR, TABLE_PATH, TEMPLATE_PATH, OUT_PATH, LOGEMENTS_PATH, INDEX_PATH = sys.argv[1:7]
 DEP_LABEL_CODES_ONLY = {"75", "92", "93", "94", "90"}   # départements trop petits : numéro seul
 DEP_LABEL_MAXLEN = 11                                   # au-delà, le nom passe sur deux lignes
@@ -319,6 +323,11 @@ index = ('<!doctype html>\n<html lang="fr">\n<head>\n<meta charset="utf-8">\n'
          '<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">\n'
          '<meta name="description" content="Carte interactive des zones climatiques RE2020 par département, '
          'avec le nombre de logements par zone (INSEE, RP 2022).">\n'
+         # Favicon : PNG en repli déclaré d'abord, SVG ensuite (retenu en priorité
+         # par les navigateurs récents), puis icône dédiée pour iOS
+         f'<link rel="icon" href="{FAVICON_PNG}" type="image/png" sizes="32x32">\n'
+         f'<link rel="icon" href="{FAVICON_SVG}" type="image/svg+xml">\n'
+         f'<link rel="apple-touch-icon" href="{APPLE_TOUCH_ICON}">\n'
          + head + "\nbody { margin: 0; }\n" + sep + "\n</head>\n<body>\n" + rest + "\n</body>\n</html>\n")
 open(INDEX_PATH, "w", encoding="utf-8").write(index)
 print("OK", VIEW_W, VIEW_H, len(html), {k: len(v) for k, v in rivers.items()}, len(massif_paths))

@@ -166,6 +166,35 @@ aside { display: grid; gap: 22px; min-width: 0; }
 .bar span { display: block; height: 100%; }
 .count { font-variant-numeric: tabular-nums; font-size: 13px; color: var(--muted); min-width: 2ch; text-align: right; }
 
+/* Boîtes dépliables de la colonne (élément natif <details>) */
+.box > summary { cursor: pointer; list-style: none; display: flex; align-items: center; gap: 7px; user-select: none; }
+.box > summary::-webkit-details-marker { display: none; }
+.box > summary::before {                      /* chevron : ▸ fermé, ▾ ouvert */
+  content: ""; flex: none; border-left: 5px solid currentColor;
+  border-top: 4px solid transparent; border-bottom: 4px solid transparent; transition: transform .15s ease;
+}
+.box[open] > summary::before { transform: rotate(90deg); }
+.box:not([open]) > summary { margin-bottom: 0; }
+.box > summary:hover { color: var(--ink); }
+.box > summary:focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; border-radius: 3px; }
+
+/* DH médians par zone : barre de la médiane + traits de référence */
+.dh { display: grid; gap: 4px; }
+.dhrow { display: grid; grid-template-columns: 40px minmax(0, 1fr) 44px 34px; align-items: center; gap: 8px; padding: 2px 8px; font-size: 13.5px; border-radius: 6px; }
+.dhrow:not(.axis):hover { background: var(--surface); }
+.dhrow .code { display: flex; align-items: center; gap: 6px; }
+.dhrow .dot { width: 10px; height: 10px; border-radius: 2px; flex: none; }
+.dhrow .dhtrack { position: relative; height: 12px; }
+.dhrow .base, .dhrow .fill { position: absolute; left: 0; top: 3px; height: 6px; border-radius: 3px; }
+.dhrow .base { right: 0; background: var(--line); }
+.dhrow .ref { position: absolute; top: -1px; bottom: -1px; width: 0; border-left: 1.5px dashed var(--muted); }
+.dhrow .ref.max { border-left: 1.5px solid var(--ink); }
+.dhrow .val, .dhrow .nb { font-variant-numeric: tabular-nums; text-align: right; }
+.dhrow .nb { color: var(--muted); font-size: 12px; }
+.dhrow.axis { padding-block: 0; font-size: 11px; color: var(--muted); font-family: var(--font-mono); }
+.dhrow.axis .dhtrack { height: 14px; }
+.dhrow.axis .tick { position: absolute; top: 0; transform: translateX(-50%); white-space: nowrap; }
+
 /* Logements par zone */
 .housing { display: grid; gap: 4px; }
 .hrow { display: grid; grid-template-columns: 44px 1fr 58px 44px; align-items: center; gap: 8px; padding: 2px 8px; font-size: 13.5px; }
@@ -195,7 +224,13 @@ aside { display: grid; gap: 22px; min-width: 0; }
 .card .region { color: var(--muted); margin: 0; }
 .card .stock { margin: 6px 0 0; font-size: 13.5px; line-height: 1.45; border-top: 1px solid var(--line); padding-top: 8px; }
 .card .stock b { font-variant-numeric: tabular-nums; }
-.pill { justify-self: start; margin-top: 4px; font-family: var(--font-mono); font-size: 14px; padding: 3px 10px; border-radius: 999px; color: var(--on-zone); }
+.tags { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; margin-top: 4px; }
+.dh-tag {                                      /* badge DH : rectangle à bord coloré, distinct de la pastille de zone */
+  font-family: var(--font-mono); font-size: 12.5px; padding: 1px 6px; border-radius: 3px; white-space: nowrap;
+  border: 2px solid; background: transparent; color: var(--ink);
+}
+.dh-tag b { font-weight: 500; font-variant-numeric: tabular-nums; }
+.pill { justify-self: start; font-family: var(--font-mono); font-size: 13.5px; padding: 3px 9px; border-radius: 999px; color: var(--on-zone); }
 
 footer { color: var(--muted); font-size: 13px; border-top: 1px solid var(--line); padding-top: 14px; display: grid; gap: 4px; }
 footer p { margin: 0; max-width: 90ch; }
@@ -277,21 +312,13 @@ __CITIES__
     </div>
 
     <aside>
-      <div class="card" id="card" aria-live="polite"></div>
+      <details class="box" id="box-dept" open>
+        <summary class="panel-title">Département</summary>
+        <div class="card" id="card" aria-live="polite"></div>
+      </details>
 
-      <div>
-        <p class="panel-title">Zones · nombre de départements</p>
-        <div class="legend" id="legend"></div>
-      </div>
-
-      <div>
-        <p class="panel-title">Logements par zone · INSEE 2022</p>
-        <div class="housing" id="housing"></div>
-        <p class="housing-total" id="housing-total"></p>
-      </div>
-
-      <div>
-        <p class="panel-title">Couches</p>
+      <details class="box" id="box-layers" open>
+        <summary class="panel-title">Couches</summary>
         <div class="toggles">
           <label class="toggle" for="t-cities">
             <span>Villes</span>
@@ -314,13 +341,31 @@ __CITIES__
             <span class="track"></span>
           </label>
         </div>
-      </div>
+      </details>
+
+      <details class="box" id="box-zones" open>
+        <summary class="panel-title">Zones · nombre de départements</summary>
+        <div class="legend" id="legend"></div>
+      </details>
+
+      <details class="box" id="box-dh" open>
+        <summary class="panel-title">DH médians · OPEE</summary>
+        <div class="dh" id="dh"></div>
+        <p class="housing-total" id="dh-total"></p>
+      </details>
+
+      <details class="box" id="box-housing" open>
+        <summary class="panel-title">Logements par zone · INSEE 2022</summary>
+        <div class="housing" id="housing"></div>
+        <p class="housing-total" id="housing-total"></p>
+      </details>
     </aside>
   </div>
 
   <footer>
     <p>Zones issues du tableau fourni, découpage départemental. Logements : Insee, recensement de la population 2022 (résidences principales, secondaires, occasionnelles et logements vacants). Fleuves, lacs, pays voisins et noms des massifs : Natural Earth.</p>
     <p>Altitude : modèle numérique de terrain (~90 m) agrégé à ~500 m, classes 400–800 m et &gt; 800 m, îlots et creux de moins de 70 km² retirés, contour simplifié à ~1 km. Représentation indicative : la classe d'altitude RE2020 d'un projet se détermine à l'altitude réelle du terrain.</p>
+    <p>DH (degrés-heures d'inconfort estival) : médiane par zone des bâtiments conformes de l'open data OPEE (RE2020), extraction du __DH_DATE__. Traits de référence à 350 °C.h et 1 250 °C.h.</p>
     <p class="version">Version __VERSION__ · générée le __BUILD_DATE__ · <a href="__REPO_URL__">code source et historique des versions</a></p>
   </footer>
 </div>
@@ -332,6 +377,14 @@ __CITIES__
 const DEPTS = __DATA__;            // code → { r: région, n: nom, z: zone }
 const COUNTS = __COUNTS__;         // zone → nombre de départements
 const LOGEMENTS = __LOGEMENTS__;   // zone → { l: logements, rp: résidences principales }
+const DH = __DH__;                 // { zones: { zone → { m: médiane °C.h, n: nb bâtiments } }, all: { m, n } }
+const DH_REFS = __DH_REFS__;       // traits de référence (°C.h)
+const DH_SCALE = __DH_SCALE__;     // borne de l'échelle des barres DH (°C.h)
+const DH_REF_INFO = {              // infobulles des traits de référence
+  350: "350 °C.h : au-delà, pénalité forfaitaire de climatisation dans le Cep",
+  1250: "1 250 °C.h : DH max courant (seuil de conformité)",
+};
+const BOX_STORE_KEY = "zones-re2020:boites";   // mémorisation par visiteur des boîtes pliées
 const ZONE_ORDER = ["H1a", "H1b", "H1c", "H2a", "H2b", "H2c", "H2d", "H3"];
 const NF = new Intl.NumberFormat("fr-FR");
 const NF1 = new Intl.NumberFormat("fr-FR", { minimumFractionDigits: 1, maximumFractionDigits: 1 });
@@ -346,6 +399,8 @@ const card = document.getElementById("card");
 const legend = document.getElementById("legend");
 const housing = document.getElementById("housing");
 const housingTotal = document.getElementById("housing-total");
+const dhBox = document.getElementById("dh");
+const dhTotal = document.getElementById("dh-total");
 // Interrupteur → classe CSS posée sur la carte
 const TOGGLES = { "t-context": "show-context", "t-relief": "show-relief",
                   "t-cities": "show-cities", "t-deps": "show-deps" };
@@ -411,6 +466,54 @@ housingTotal.textContent =
   `dont ${NF1.format(TOTAL_RP / 1e6)} millions de résidences principales.`;
 
 // ---------------------------------------------------------------------------
+// DH médians par zone : barre de la médiane sur une échelle commune + traits de référence
+// ---------------------------------------------------------------------------
+const pos = v => `${(v / DH_SCALE) * 100}%`;
+const refsHtml = DH_REFS.map(r =>
+  `<span class="ref${r === Math.max(...DH_REFS) ? " max" : ""}" style="left:${pos(r)}" title="${DH_REF_INFO[r] || r + " °C.h"}"></span>`).join("");
+// Ligne d'axe : valeurs des traits de référence
+const axis = document.createElement("div");
+axis.className = "dhrow axis";
+axis.innerHTML = `<span></span><span class="dhtrack">${DH_REFS.map(r =>
+  `<span class="tick" style="left:${pos(r)}">${NF.format(r)}</span>`).join("")}</span><span class="val">°C.h</span><span class="nb">bât.</span>`;
+dhBox.appendChild(axis);
+for (const z of ZONE_ORDER) {
+  const d = DH.zones[z];
+  if (!d) continue;
+  const row = document.createElement("div");
+  row.className = "dhrow";
+  row.title = `${z} : DH médian ${NF.format(d.m)} °C.h sur ${NF.format(d.n)} bâtiments conformes`;
+  row.innerHTML =
+    `<span class="code"><span class="dot" style="background:var(--${z})"></span>${z}</span>` +
+    `<span class="dhtrack"><span class="base"></span><span class="fill" style="width:${pos(Math.min(d.m, DH_SCALE))};background:var(--${z})"></span>${refsHtml}</span>` +
+    `<span class="val">${NF.format(d.m)}</span>` +
+    `<span class="nb">${NF.format(d.n)}</span>`;
+  row.addEventListener("mouseenter", () => { if (!lockedZone) setFocus(z); });
+  row.addEventListener("mouseleave", () => { if (!lockedZone) setFocus(null); });
+  dhBox.appendChild(row);
+}
+if (DH.all) {
+  dhTotal.textContent = `Toutes zones : médiane ${NF.format(DH.all.m)} °C.h sur ${NF.format(DH.all.n)} bâtiments conformes. ` +
+    `Traits : 350 °C.h (pénalité dans le Cep au-delà) et 1 250 °C.h (DH max).`;
+}
+
+// ---------------------------------------------------------------------------
+// Boîtes dépliables : état mémorisé dans le navigateur du visiteur (tout ouvert par défaut)
+// ---------------------------------------------------------------------------
+const boxes = [...document.querySelectorAll("details.box")];
+try {
+  const saved = JSON.parse(localStorage.getItem(BOX_STORE_KEY) || "{}");
+  for (const b of boxes) if (b.id in saved) b.open = !!saved[b.id];
+} catch (e) { /* stockage indisponible : on garde l'état par défaut */ }
+for (const b of boxes) {
+  b.addEventListener("toggle", () => {
+    try {
+      localStorage.setItem(BOX_STORE_KEY, JSON.stringify(Object.fromEntries(boxes.map(x => [x.id, x.open]))));
+    } catch (e) { /* stockage indisponible : pas de mémorisation */ }
+  });
+}
+
+// ---------------------------------------------------------------------------
 // Couches : chaque interrupteur pose ou retire une classe sur la carte
 // ---------------------------------------------------------------------------
 for (const [id, cls] of Object.entries(TOGGLES)) {
@@ -434,7 +537,9 @@ function showDept(path) {
     `<span class="num">Département ${code}</span>` +
     `<p class="name">${d.n}</p>` +
     `<p class="region">${d.r}</p>` +
-    `<span class="pill" style="background:var(--${d.z})">Zone ${d.z}</span>` +
+    `<div class="tags"><span class="pill" style="background:var(--${d.z})">Zone ${d.z}</span>` +
+    (DH.zones[d.z] ? `<span class="dh-tag" style="border-color:var(--${d.z})" title="DH médian de la zone ${d.z} (open data OPEE, ${NF.format(DH.zones[d.z].n)} bâtiments conformes)">DH méd. <b>${NF.format(DH.zones[d.z].m)}</b> °C.h</span>` : "") +
+    `</div>` +
     `<p class="stock"><b>${NF.format(d.l)}</b> logements en 2022<br>` +
     `${NF1.format(d.rp)} % résidences principales · ${NF1.format(d.rs)} % secondaires · ${NF1.format(d.lv)} % vacants</p>`;
 }

@@ -7,6 +7,19 @@ Numérotation [SemVer](https://semver.org/lang/fr/) :
 
 La version est définie par la constante `VERSION` en tête de `scripts/build_map.py`, affichée en pied de page et reportée en tag git (`vX.Y.Z`).
 
+## [1.1.0] — 18/10/2026
+
+### Ajouté
+- Boîte « DH médians · OPEE » : degré-heures médian par zone (bâtiments conformes de l'open data OPEE, extraction du 18/10/2026), barre sur une échelle commune avec deux traits de référence, 350 °C.h (au-delà, pénalité forfaitaire de climatisation dans le Cep) et 1 250 °C.h (DH max courant), nombre de bâtiments et ligne « Toutes zones ». Le survol d'une ligne isole la zone sur la carte.
+- Fiche département : badge « DH méd. » de la zone, rectangulaire à bord coloré, à côté de la pastille de zone.
+- Boîtes de la colonne dépliables (titre cliquable avec chevron), toutes ouvertes par défaut ; l'état plié ou déplié est mémorisé dans le navigateur de chaque visiteur.
+
+### Modifié
+- Nouvel ordre de la colonne : Département, Couches, Zones, DH médians, Logements par zone. La fiche département porte désormais le titre « Département ».
+
+### Données
+- `data/dh_median_opee.csv` : synthèse par zone (nombre de bâtiments, médiane, Q3), lue par `scripts/build_map.py` (seule la médiane est affichée).
+
 ## [1.0.3] — 18/10/2026
 
 ### Modifié

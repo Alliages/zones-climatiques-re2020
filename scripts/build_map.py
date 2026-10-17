@@ -2,7 +2,8 @@
 
 Couches : mers en dégradé, pays voisins, départements, limites de zones,
 lacs, fleuves, altitude (classes RE2020 > 400 m et > 800 m), libellés (zones, villes, départements, pays, mers),
-nombre de logements (INSEE, RP 2022) par département et par zone.
+nombre de logements (INSEE, RP 2022) par département et par zone,
+DH médians par zone (open data OPEE).
 
 Usage :
   python3 -I build_map.py <dossier_geo> <zones.txt> <template.html> <sortie_artifact.html>
@@ -20,7 +21,7 @@ from shapely.ops import unary_union, polylabel
 # ---------------------------------------------------------------------------
 # Paramètres (regroupés en tête pour la lisibilité)
 # ---------------------------------------------------------------------------
-VERSION = "1.0.3"             # version de la carte (SemVer) — à reporter dans CHANGELOG.md et en tag git
+VERSION = "1.1.0"             # version de la carte (SemVer) — à reporter dans CHANGELOG.md et en tag git
 BUILD_DATE = datetime.date.today().strftime("%d/%m/%Y")   # date de génération affichée en pied de page
 REPO_URL = "https://github.com/Alliages/zones-climatiques-re2020"
 # Icônes de l'onglet (fichiers à la racine du dépôt, à côté de index.html)
@@ -48,6 +49,12 @@ RIVERS_SECOND = {"Marne", "Yonne", "Saône", "Sane", "Doubs", "Tarn", "Durance",
 # Altitude : classes RE2020 issues du MNT (voir scripts/altitude/), deux surfaces emboîtées
 ALTITUDE_PATH = os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "data", "altitude_re2020.geojson")
 ALTITUDE_CLASSES = ["400+", "800+"]     # « 400+ » : hachures 45° ; « 800+ » : + hachures 135° (quadrillage)
+
+# Degrés-heures (DH) médians par zone : open data OPEE (bâtiments conformes), synthèse fournie par Guigui
+DH_PATH = os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "data", "dh_median_opee.csv")
+DH_EXTRACTION = "18/10/2026"            # date d'extraction OPEE affichée dans la note de source
+DH_REFS = [350, 1250]                   # traits de référence (°C.h) : seuil bas et DH max courant
+DH_SCALE_MAX = 1300                     # borne de l'échelle des barres (°C.h)
 
 # Noms des massifs affichés avec la couche Altitude (nom Natural Earth → libellé) — repères de lecture
 MASSIFS = {"ALPS": "Alpes", "PYRENEES": "Pyrénées", "Massif Central": "Massif central",
@@ -298,6 +305,22 @@ for code, g in dep_shapes.items():
     spans = "".join(f'<tspan x="{x:.1f}" y="{y0 + k * 12:.1f}">{t}</tspan>' for k, t in enumerate(lines))
     dep_labels.append(f'<text class="dlabel">{spans}</text>')
 
+# 10. DH médians par zone (CSV « ; » à virgule décimale, encodé UTF-8 avec BOM)
+def lire_dh(path):
+    """Retourne {zone: {m: médiane, n: nb bâtiments}} et la ligne « Toutes zones »."""
+    zones, total = {}, None
+    lignes = open(path, encoding="utf-8-sig").read().strip().splitlines()
+    for ligne in lignes[1:]:
+        zone, nb, med = ligne.split(";")[:3]
+        val = {"m": round(float(med.replace(",", "."))), "n": int(nb)}
+        if zone in ZONES:
+            zones[zone] = val
+        else:
+            total = val
+    return {"zones": zones, "all": total}
+
+dh = lire_dh(DH_PATH)
+
 # ---------------------------------------------------------------------------
 # Assemblage
 # ---------------------------------------------------------------------------
@@ -318,6 +341,8 @@ for key, val in {
     "__ZONELABELS__": "\n".join(zone_labels), "__CITIES__": "\n".join(city_svg),
     "__CONTEXT__": "\n".join(context_svg),
     "__DEPLABELS__": "\n".join(dep_labels),
+    "__DH__": json.dumps(dh), "__DH_DATE__": DH_EXTRACTION,
+    "__DH_REFS__": json.dumps(DH_REFS), "__DH_SCALE__": str(DH_SCALE_MAX),
     "__VERSION__": VERSION, "__BUILD_DATE__": BUILD_DATE, "__REPO_URL__": REPO_URL,
     "__DATA__": json.dumps(data, ensure_ascii=False), "__COUNTS__": json.dumps(counts),
     "__LOGEMENTS__": json.dumps(logements),

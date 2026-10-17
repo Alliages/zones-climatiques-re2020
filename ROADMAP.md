@@ -5,7 +5,8 @@ Liste des modifications à apporter dans les prochaines versions. Chaque ligne c
 ## Données et calculs
 - [ ] Exploiter les documents complémentaires RE2020 : https://rt-re-batiment.developpement-durable.gouv.fr/documents-complementaires-a706.html
 - [ ] Calculer les degrés-heures (DH)
-- [ ] Afficher les DH moyens issus de l'open data OPEE
+- [x] Afficher les DH médians par zone issus de l'open data OPEE (→ 1.1.0)
+- [ ] DH médian par département (nécessite le département ou la commune dans l'extraction OPEE)
 - [ ] Préciser les îlots de chaleur urbains (ICU)
 
 ## Météo

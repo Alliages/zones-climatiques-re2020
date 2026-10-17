@@ -175,6 +175,35 @@ aside { display: grid; gap: 22px; min-width: 0; }
 .bar span { display: block; height: 100%; }
 .count { font-variant-numeric: tabular-nums; font-size: 13px; color: var(--muted); min-width: 2ch; text-align: right; }
 
+/* Boîtes dépliables de la colonne (élément natif <details>) */
+.box > summary { cursor: pointer; list-style: none; display: flex; align-items: center; gap: 7px; user-select: none; }
+.box > summary::-webkit-details-marker { display: none; }
+.box > summary::before {                      /* chevron : ▸ fermé, ▾ ouvert */
+  content: ""; flex: none; border-left: 5px solid currentColor;
+  border-top: 4px solid transparent; border-bottom: 4px solid transparent; transition: transform .15s ease;
+}
+.box[open] > summary::before { transform: rotate(90deg); }
+.box:not([open]) > summary { margin-bottom: 0; }
+.box > summary:hover { color: var(--ink); }
+.box > summary:focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; border-radius: 3px; }
+
+/* DH médians par zone : barre de la médiane + traits de référence */
+.dh { display: grid; gap: 4px; }
+.dhrow { display: grid; grid-template-columns: 40px minmax(0, 1fr) 44px 34px; align-items: center; gap: 8px; padding: 2px 8px; font-size: 13.5px; border-radius: 6px; }
+.dhrow:not(.axis):hover { background: var(--surface); }
+.dhrow .code { display: flex; align-items: center; gap: 6px; }
+.dhrow .dot { width: 10px; height: 10px; border-radius: 2px; flex: none; }
+.dhrow .dhtrack { position: relative; height: 12px; }
+.dhrow .base, .dhrow .fill { position: absolute; left: 0; top: 3px; height: 6px; border-radius: 3px; }
+.dhrow .base { right: 0; background: var(--line); }
+.dhrow .ref { position: absolute; top: -1px; bottom: -1px; width: 0; border-left: 1.5px dashed var(--muted); }
+.dhrow .ref.max { border-left: 1.5px solid var(--ink); }
+.dhrow .val, .dhrow .nb { font-variant-numeric: tabular-nums; text-align: right; }
+.dhrow .nb { color: var(--muted); font-size: 12px; }
+.dhrow.axis { padding-block: 0; font-size: 11px; color: var(--muted); font-family: var(--font-mono); }
+.dhrow.axis .dhtrack { height: 14px; }
+.dhrow.axis .tick { position: absolute; top: 0; transform: translateX(-50%); white-space: nowrap; }
+
 /* Logements par zone */
 .housing { display: grid; gap: 4px; }
 .hrow { display: grid; grid-template-columns: 44px 1fr 58px 44px; align-items: center; gap: 8px; padding: 2px 8px; font-size: 13.5px; }
@@ -204,7 +233,13 @@ aside { display: grid; gap: 22px; min-width: 0; }
 .card .region { color: var(--muted); margin: 0; }
 .card .stock { margin: 6px 0 0; font-size: 13.5px; line-height: 1.45; border-top: 1px solid var(--line); padding-top: 8px; }
 .card .stock b { font-variant-numeric: tabular-nums; }
-.pill { justify-self: start; margin-top: 4px; font-family: var(--font-mono); font-size: 14px; padding: 3px 10px; border-radius: 999px; color: var(--on-zone); }
+.tags { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; margin-top: 4px; }
+.dh-tag {                                      /* badge DH : rectangle à bord coloré, distinct de la pastille de zone */
+  font-family: var(--font-mono); font-size: 12.5px; padding: 1px 6px; border-radius: 3px; white-space: nowrap;
+  border: 2px solid; background: transparent; color: var(--ink);
+}
+.dh-tag b { font-weight: 500; font-variant-numeric: tabular-nums; }
+.pill { justify-self: start; font-family: var(--font-mono); font-size: 13.5px; padding: 3px 9px; border-radius: 999px; color: var(--on-zone); }
 
 footer { color: var(--muted); font-size: 13px; border-top: 1px solid var(--line); padding-top: 14px; display: grid; gap: 4px; }
 footer p { margin: 0; max-width: 90ch; }
@@ -533,21 +568,13 @@ body { margin: 0; }
     </div>
 
     <aside>
-      <div class="card" id="card" aria-live="polite"></div>
+      <details class="box" id="box-dept" open>
+        <summary class="panel-title">Département</summary>
+        <div class="card" id="card" aria-live="polite"></div>
+      </details>
 
-      <div>
-        <p class="panel-title">Zones · nombre de départements</p>
-        <div class="legend" id="legend"></div>
-      </div>
-
-      <div>
-        <p class="panel-title">Logements par zone · INSEE 2022</p>
-        <div class="housing" id="housing"></div>
-        <p class="housing-total" id="housing-total"></p>
-      </div>
-
-      <div>
-        <p class="panel-title">Couches</p>
+      <details class="box" id="box-layers" open>
+        <summary class="panel-title">Couches</summary>
         <div class="toggles">
           <label class="toggle" for="t-cities">
             <span>Villes</span>
@@ -570,14 +597,32 @@ body { margin: 0; }
             <span class="track"></span>
           </label>
         </div>
-      </div>
+      </details>
+
+      <details class="box" id="box-zones" open>
+        <summary class="panel-title">Zones · nombre de départements</summary>
+        <div class="legend" id="legend"></div>
+      </details>
+
+      <details class="box" id="box-dh" open>
+        <summary class="panel-title">DH médians · OPEE</summary>
+        <div class="dh" id="dh"></div>
+        <p class="housing-total" id="dh-total"></p>
+      </details>
+
+      <details class="box" id="box-housing" open>
+        <summary class="panel-title">Logements par zone · INSEE 2022</summary>
+        <div class="housing" id="housing"></div>
+        <p class="housing-total" id="housing-total"></p>
+      </details>
     </aside>
   </div>
 
   <footer>
     <p>Zones issues du tableau fourni, découpage départemental. Logements : Insee, recensement de la population 2022 (résidences principales, secondaires, occasionnelles et logements vacants). Fleuves, lacs, pays voisins et noms des massifs : Natural Earth.</p>
     <p>Altitude : modèle numérique de terrain (~90 m) agrégé à ~500 m, classes 400–800 m et &gt; 800 m, îlots et creux de moins de 70 km² retirés, contour simplifié à ~1 km. Représentation indicative : la classe d'altitude RE2020 d'un projet se détermine à l'altitude réelle du terrain.</p>
-    <p class="version">Version 1.0.3 · générée le 18/10/2026 · <a href="https://github.com/Alliages/zones-climatiques-re2020">code source et historique des versions</a></p>
+    <p>DH (degrés-heures d'inconfort estival) : médiane par zone des bâtiments conformes de l'open data OPEE (RE2020), extraction du 18/10/2026. Traits de référence à 350 °C.h et 1 250 °C.h.</p>
+    <p class="version">Version 1.1.0 · générée le 18/10/2026 · <a href="https://github.com/Alliages/zones-climatiques-re2020">code source et historique des versions</a></p>
   </footer>
 </div>
 
@@ -588,6 +633,14 @@ body { margin: 0; }
 const DEPTS = {"01": {"r": "Auvergne-Rhône-Alpes", "n": "Ain", "z": "H1c", "l": 334271, "rp": 86.7, "rs": 5.5, "lv": 7.9}, "02": {"r": "Hauts-de-France", "n": "Aisne", "z": "H1a", "l": 269088, "rp": 86.7, "rs": 3.3, "lv": 10.0}, "03": {"r": "Auvergne-Rhône-Alpes", "n": "Allier", "z": "H1c", "l": 210198, "rp": 78.2, "rs": 7.3, "lv": 14.5}, "04": {"r": "Provence-Alpes-Côte d'Azur", "n": "Alpes-de-Haute-Provence", "z": "H2d", "l": 132550, "rp": 61.4, "rs": 30.5, "lv": 8.1}, "05": {"r": "Provence-Alpes-Côte d'Azur", "n": "Hautes-Alpes", "z": "H1c", "l": 140963, "rp": 49.0, "rs": 45.3, "lv": 5.7}, "06": {"r": "Provence-Alpes-Côte d'Azur", "n": "Alpes-Maritimes", "z": "H3", "l": 795862, "rp": 67.1, "rs": 24.9, "lv": 8.0}, "07": {"r": "Auvergne-Rhône-Alpes", "n": "Ardèche", "z": "H2d", "l": 211903, "rp": 73.0, "rs": 17.7, "lv": 9.3}, "08": {"r": "Grand Est", "n": "Ardennes", "z": "H1b", "l": 144475, "rp": 84.6, "rs": 3.9, "lv": 11.5}, "09": {"r": "Occitanie", "n": "Ariège", "z": "H2c", "l": 111863, "rp": 67.1, "rs": 24.3, "lv": 8.6}, "10": {"r": "Grand Est", "n": "Aube", "z": "H1b", "l": 168641, "rp": 85.7, "rs": 5.1, "lv": 9.2}, "11": {"r": "Occitanie", "n": "Aude", "z": "H3", "l": 271141, "rp": 66.8, "rs": 25.3, "lv": 8.0}, "12": {"r": "Occitanie", "n": "Aveyron", "z": "H2c", "l": 186049, "rp": 71.8, "rs": 17.2, "lv": 11.0}, "13": {"r": "Provence-Alpes-Côte d'Azur", "n": "Bouches-du-Rhône", "z": "H3", "l": 1078388, "rp": 87.9, "rs": 4.9, "lv": 7.2}, "14": {"r": "Normandie", "n": "Calvados", "z": "H1a", "l": 435219, "rp": 75.7, "rs": 17.9, "lv": 6.4}, "15": {"r": "Auvergne-Rhône-Alpes", "n": "Cantal", "z": "H1c", "l": 103163, "rp": 67.9, "rs": 20.6, "lv": 11.5}, "16": {"r": "Nouvelle-Aquitaine", "n": "Charente", "z": "H2b", "l": 202260, "rp": 83.4, "rs": 6.4, "lv": 10.2}, "17": {"r": "Nouvelle-Aquitaine", "n": "Charente-Maritime", "z": "H2b", "l": 457330, "rp": 71.1, "rs": 22.2, "lv": 6.7}, "18": {"r": "Centre-Val de Loire", "n": "Cher", "z": "H2b", "l": 179778, "rp": 79.9, "rs": 7.5, "lv": 12.6}, "19": {"r": "Nouvelle-Aquitaine", "n": "Corrèze", "z": "H1c", "l": 157137, "rp": 74.0, "rs": 14.9, "lv": 11.1}, "2A": {"r": "Corse", "n": "Corse-du-Sud", "z": "H3", "l": 126686, "rp": 58.2, "rs": 38.4, "lv": 3.4}, "2B": {"r": "Corse", "n": "Haute-Corse", "z": "H3", "l": 138794, "rp": 61.5, "rs": 35.3, "lv": 3.2}, "21": {"r": "Bourgogne-Franche-Comté", "n": "Côte-d'Or", "z": "H1c", "l": 301055, "rp": 85.9, "rs": 5.8, "lv": 8.3}, "22": {"r": "Bretagne", "n": "Côtes-d'Armor", "z": "H2a", "l": 379686, "rp": 75.8, "rs": 16.2, "lv": 8.0}, "23": {"r": "Nouvelle-Aquitaine", "n": "Creuse", "z": "H1c", "l": 89302, "rp": 64.6, "rs": 19.9, "lv": 15.5}, "24": {"r": "Nouvelle-Aquitaine", "n": "Dordogne", "z": "H2c", "l": 266451, "rp": 75.8, "rs": 14.3, "lv": 9.9}, "25": {"r": "Bourgogne-Franche-Comté", "n": "Doubs", "z": "H1c", "l": 290723, "rp": 87.2, "rs": 4.2, "lv": 8.6}, "26": {"r": "Auvergne-Rhône-Alpes", "n": "Drôme", "z": "H2d", "l": 285121, "rp": 83.8, "rs": 7.9, "lv": 8.3}, "27": {"r": "Normandie", "n": "Eure", "z": "H1a", "l": 303290, "rp": 86.1, "rs": 6.2, "lv": 7.6}, "28": {"r": "Centre-Val de Loire", "n": "Eure-et-Loir", "z": "H1a", "l": 221767, "rp": 85.7, "rs": 5.8, "lv": 8.4}, "29": {"r": "Bretagne", "n": "Finistère", "z": "H2a", "l": 560822, "rp": 79.6, "rs": 13.5, "lv": 6.9}, "30": {"r": "Occitanie", "n": "Gard", "z": "H3", "l": 446619, "rp": 78.8, "rs": 12.7, "lv": 8.5}, "31": {"r": "Occitanie", "n": "Haute-Garonne", "z": "H2c", "l": 784337, "rp": 88.7, "rs": 4.2, "lv": 7.1}, "32": {"r": "Occitanie", "n": "Gers", "z": "H2c", "l": 113549, "rp": 80.5, "rs": 9.4, "lv": 10.0}, "33": {"r": "Nouvelle-Aquitaine", "n": "Gironde", "z": "H2c", "l": 930035, "rp": 84.9, "rs": 9.0, "lv": 6.1}, "34": {"r": "Occitanie", "n": "Hérault", "z": "H3", "l": 772408, "rp": 75.7, "rs": 17.4, "lv": 6.9}, "35": {"r": "Bretagne", "n": "Ille-et-Vilaine", "z": "H2a", "l": 583725, "rp": 86.6, "rs": 7.2, "lv": 6.2}, "36": {"r": "Centre-Val de Loire", "n": "Indre", "z": "H2b", "l": 139283, "rp": 76.2, "rs": 10.6, "lv": 13.2}, "37": {"r": "Centre-Val de Loire", "n": "Indre-et-Loire", "z": "H2b", "l": 336937, "rp": 86.8, "rs": 4.8, "lv": 8.4}, "38": {"r": "Auvergne-Rhône-Alpes", "n": "Isère", "z": "H1c", "l": 681287, "rp": 84.1, "rs": 8.2, "lv": 7.7}, "39": {"r": "Bourgogne-Franche-Comté", "n": "Jura", "z": "H1c", "l": 152826, "rp": 80.0, "rs": 10.5, "lv": 9.5}, "40": {"r": "Nouvelle-Aquitaine", "n": "Landes", "z": "H2c", "l": 274843, "rp": 73.4, "rs": 20.4, "lv": 6.2}, "41": {"r": "Centre-Val de Loire", "n": "Loir-et-Cher", "z": "H2b", "l": 187841, "rp": 81.2, "rs": 8.1, "lv": 10.7}, "42": {"r": "Auvergne-Rhône-Alpes", "n": "Loire", "z": "H1c", "l": 408131, "rp": 86.1, "rs": 4.0, "lv": 9.9}, "43": {"r": "Auvergne-Rhône-Alpes", "n": "Haute-Loire", "z": "H1c", "l": 146369, "rp": 72.2, "rs": 15.6, "lv": 12.1}, "44": {"r": "Pays de la Loire", "n": "Loire-Atlantique", "z": "H2b", "l": 799354, "rp": 84.4, "rs": 10.2, "lv": 5.5}, "45": {"r": "Centre-Val de Loire", "n": "Loiret", "z": "H1b", "l": 356461, "rp": 86.4, "rs": 4.9, "lv": 8.7}, "46": {"r": "Occitanie", "n": "Lot", "z": "H2c", "l": 121630, "rp": 71.5, "rs": 18.3, "lv": 10.2}, "47": {"r": "Nouvelle-Aquitaine", "n": "Lot-et-Garonne", "z": "H2c", "l": 190903, "rp": 82.2, "rs": 6.4, "lv": 11.5}, "48": {"r": "Occitanie", "n": "Lozère", "z": "H2d", "l": 62201, "rp": 58.5, "rs": 32.4, "lv": 9.1}, "49": {"r": "Pays de la Loire", "n": "Maine-et-Loire", "z": "H2b", "l": 410263, "rp": 90.5, "rs": 3.2, "lv": 6.3}, "50": {"r": "Normandie", "n": "Manche", "z": "H2a", "l": 304048, "rp": 77.4, "rs": 14.9, "lv": 7.7}, "51": {"r": "Grand Est", "n": "Marne", "z": "H1b", "l": 302456, "rp": 87.5, "rs": 3.5, "lv": 9.0}, "52": {"r": "Grand Est", "n": "Haute-Marne", "z": "H1b", "l": 100645, "rp": 80.6, "rs": 7.7, "lv": 11.7}, "53": {"r": "Pays de la Loire", "n": "Mayenne", "z": "H2b", "l": 160871, "rp": 85.5, "rs": 5.3, "lv": 9.2}, "54": {"r": "Grand Est", "n": "Meurthe-et-Moselle", "z": "H1b", "l": 387346, "rp": 88.6, "rs": 2.3, "lv": 9.1}, "55": {"r": "Grand Est", "n": "Meuse", "z": "H1b", "l": 100258, "rp": 83.4, "rs": 4.9, "lv": 11.7}, "56": {"r": "Bretagne", "n": "Morbihan", "z": "H2a", "l": 486769, "rp": 75.7, "rs": 17.7, "lv": 6.6}, "57": {"r": "Grand Est", "n": "Moselle", "z": "H1b", "l": 535379, "rp": 88.7, "rs": 2.3, "lv": 9.1}, "58": {"r": "Bourgogne-Franche-Comté", "n": "Nièvre", "z": "H1b", "l": 141754, "rp": 71.3, "rs": 15.0, "lv": 13.7}, "59": {"r": "Hauts-de-France", "n": "Nord", "z": "H1a", "l": 1262771, "rp": 91.0, "rs": 1.8, "lv": 7.2}, "60": {"r": "Hauts-de-France", "n": "Oise", "z": "H1a", "l": 384836, "rp": 90.5, "rs": 2.4, "lv": 7.0}, "61": {"r": "Normandie", "n": "Orne", "z": "H1a", "l": 165315, "rp": 78.8, "rs": 10.6, "lv": 10.6}, "62": {"r": "Hauts-de-France", "n": "Pas-de-Calais", "z": "H1a", "l": 732092, "rp": 86.2, "rs": 6.6, "lv": 7.2}, "63": {"r": "Auvergne-Rhône-Alpes", "n": "Puy-de-Dôme", "z": "H1c", "l": 401933, "rp": 79.4, "rs": 10.2, "lv": 10.5}, "64": {"r": "Nouvelle-Aquitaine", "n": "Pyrénées-Atlantiques", "z": "H2c", "l": 426497, "rp": 79.4, "rs": 13.3, "lv": 7.3}, "65": {"r": "Occitanie", "n": "Hautes-Pyrénées", "z": "H2c", "l": 166811, "rp": 67.8, "rs": 23.4, "lv": 8.8}, "66": {"r": "Occitanie", "n": "Pyrénées-Orientales", "z": "H3", "l": 365752, "rp": 64.8, "rs": 27.4, "lv": 7.8}, "67": {"r": "Grand Est", "n": "Bas-Rhin", "z": "H1b", "l": 587480, "rp": 88.7, "rs": 3.3, "lv": 7.9}, "68": {"r": "Grand Est", "n": "Haut-Rhin", "z": "H1b", "l": 392970, "rp": 87.4, "rs": 3.6, "lv": 9.0}, "69": {"r": "Auvergne-Rhône-Alpes", "n": "Rhône", "z": "H1c", "l": 977442, "rp": 88.8, "rs": 3.5, "lv": 7.7}, "70": {"r": "Bourgogne-Franche-Comté", "n": "Haute-Saône", "z": "H1b", "l": 129885, "rp": 83.5, "rs": 6.2, "lv": 10.3}, "71": {"r": "Bourgogne-Franche-Comté", "n": "Saône-et-Loire", "z": "H1c", "l": 315623, "rp": 82.6, "rs": 7.4, "lv": 9.9}, "72": {"r": "Pays de la Loire", "n": "Sarthe", "z": "H2b", "l": 298108, "rp": 86.3, "rs": 4.8, "lv": 8.9}, "73": {"r": "Auvergne-Rhône-Alpes", "n": "Savoie", "z": "H1c", "l": 362857, "rp": 57.4, "rs": 37.1, "lv": 5.6}, "74": {"r": "Auvergne-Rhône-Alpes", "n": "Haute-Savoie", "z": "H1c", "l": 548601, "rp": 70.0, "rs": 23.5, "lv": 6.5}, "75": {"r": "Île-de-France", "n": "Paris", "z": "H1a", "l": 1399122, "rp": 80.4, "rs": 9.8, "lv": 9.8}, "76": {"r": "Normandie", "n": "Seine-Maritime", "z": "H1a", "l": 662398, "rp": 88.0, "rs": 4.2, "lv": 7.7}, "77": {"r": "Île-de-France", "n": "Seine-et-Marne", "z": "H1a", "l": 651454, "rp": 90.2, "rs": 3.2, "lv": 6.6}, "78": {"r": "Île-de-France", "n": "Yvelines", "z": "H1a", "l": 669740, "rp": 91.3, "rs": 2.6, "lv": 6.1}, "79": {"r": "Nouvelle-Aquitaine", "n": "Deux-Sèvres", "z": "H2b", "l": 198461, "rp": 86.7, "rs": 4.7, "lv": 8.6}, "80": {"r": "Hauts-de-France", "n": "Somme", "z": "H1a", "l": 309296, "rp": 83.2, "rs": 8.5, "lv": 8.3}, "81": {"r": "Occitanie", "n": "Tarn", "z": "H2c", "l": 220316, "rp": 83.8, "rs": 7.4, "lv": 8.7}, "82": {"r": "Occitanie", "n": "Tarn-et-Garonne", "z": "H2c", "l": 137027, "rp": 84.9, "rs": 5.6, "lv": 9.5}, "83": {"r": "Provence-Alpes-Côte d'Azur", "n": "Var", "z": "H3", "l": 751393, "rp": 69.9, "rs": 24.4, "lv": 5.6}, "84": {"r": "Provence-Alpes-Côte d'Azur", "n": "Vaucluse", "z": "H2d", "l": 318026, "rp": 81.6, "rs": 8.8, "lv": 9.6}, "85": {"r": "Pays de la Loire", "n": "Vendée", "z": "H2b", "l": 447695, "rp": 71.6, "rs": 23.4, "lv": 5.0}, "86": {"r": "Nouvelle-Aquitaine", "n": "Vienne", "z": "H2b", "l": 246776, "rp": 84.6, "rs": 6.0, "lv": 9.3}, "87": {"r": "Nouvelle-Aquitaine", "n": "Haute-Vienne", "z": "H1c", "l": 224331, "rp": 82.8, "rs": 7.7, "lv": 9.5}, "88": {"r": "Grand Est", "n": "Vosges", "z": "H1b", "l": 216069, "rp": 79.0, "rs": 10.4, "lv": 10.6}, "89": {"r": "Bourgogne-Franche-Comté", "n": "Yonne", "z": "H1b", "l": 200107, "rp": 77.8, "rs": 10.5, "lv": 11.7}, "90": {"r": "Bourgogne-Franche-Comté", "n": "Territoire de Belfort", "z": "H1b", "l": 73832, "rp": 87.9, "rs": 1.8, "lv": 10.3}, "91": {"r": "Île-de-France", "n": "Essonne", "z": "H1a", "l": 593093, "rp": 91.4, "rs": 1.9, "lv": 6.6}, "92": {"r": "Île-de-France", "n": "Hauts-de-Seine", "z": "H1a", "l": 835249, "rp": 89.4, "rs": 4.0, "lv": 6.6}, "93": {"r": "Île-de-France", "n": "Seine-Saint-Denis", "z": "H1a", "l": 715490, "rp": 92.5, "rs": 1.3, "lv": 6.2}, "94": {"r": "Île-de-France", "n": "Val-de-Marne", "z": "H1a", "l": 669229, "rp": 92.0, "rs": 2.1, "lv": 5.9}, "95": {"r": "Île-de-France", "n": "Val-d'Oise", "z": "H1a", "l": 538398, "rp": 92.4, "rs": 1.6, "lv": 6.0}};            // code → { r: région, n: nom, z: zone }
 const COUNTS = {"H1a": 18, "H1b": 15, "H1c": 18, "H2a": 5, "H2b": 13, "H2c": 13, "H2d": 5, "H3": 9};         // zone → nombre de départements
 const LOGEMENTS = {"H1a": {"l": 10817847, "rp": 9500698}, "H1b": {"l": 3837758, "rp": 3287538}, "H1c": {"l": 5846212, "rp": 4657551}, "H2a": {"l": 2315050, "rp": 1843539}, "H2b": {"l": 4064957, "rp": 3330753}, "H2c": {"l": 3930311, "rp": 3185646}, "H2d": {"l": 1009801, "rp": 770903}, "H3": {"l": 4747043, "rp": 3521018}};   // zone → { l: logements, rp: résidences principales }
+const DH = {"zones": {"H1a": {"m": 619, "n": 399}, "H1b": {"m": 452, "n": 222}, "H1c": {"m": 404, "n": 357}, "H2a": {"m": 216, "n": 75}, "H2b": {"m": 654, "n": 188}, "H2c": {"m": 614, "n": 268}, "H2d": {"m": 897, "n": 49}, "H3": {"m": 1103, "n": 195}}, "all": {"m": 593, "n": 1753}};                 // { zones: { zone → { m: médiane °C.h, n: nb bâtiments } }, all: { m, n } }
+const DH_REFS = [350, 1250];       // traits de référence (°C.h)
+const DH_SCALE = 1300;     // borne de l'échelle des barres DH (°C.h)
+const DH_REF_INFO = {              // infobulles des traits de référence
+  350: "350 °C.h : au-delà, pénalité forfaitaire de climatisation dans le Cep",
+  1250: "1 250 °C.h : DH max courant (seuil de conformité)",
+};
+const BOX_STORE_KEY = "zones-re2020:boites";   // mémorisation par visiteur des boîtes pliées
 const ZONE_ORDER = ["H1a", "H1b", "H1c", "H2a", "H2b", "H2c", "H2d", "H3"];
 const NF = new Intl.NumberFormat("fr-FR");
 const NF1 = new Intl.NumberFormat("fr-FR", { minimumFractionDigits: 1, maximumFractionDigits: 1 });
@@ -602,6 +655,8 @@ const card = document.getElementById("card");
 const legend = document.getElementById("legend");
 const housing = document.getElementById("housing");
 const housingTotal = document.getElementById("housing-total");
+const dhBox = document.getElementById("dh");
+const dhTotal = document.getElementById("dh-total");
 // Interrupteur → classe CSS posée sur la carte
 const TOGGLES = { "t-context": "show-context", "t-relief": "show-relief",
                   "t-cities": "show-cities", "t-deps": "show-deps" };
@@ -667,6 +722,54 @@ housingTotal.textContent =
   `dont ${NF1.format(TOTAL_RP / 1e6)} millions de résidences principales.`;
 
 // ---------------------------------------------------------------------------
+// DH médians par zone : barre de la médiane sur une échelle commune + traits de référence
+// ---------------------------------------------------------------------------
+const pos = v => `${(v / DH_SCALE) * 100}%`;
+const refsHtml = DH_REFS.map(r =>
+  `<span class="ref${r === Math.max(...DH_REFS) ? " max" : ""}" style="left:${pos(r)}" title="${DH_REF_INFO[r] || r + " °C.h"}"></span>`).join("");
+// Ligne d'axe : valeurs des traits de référence
+const axis = document.createElement("div");
+axis.className = "dhrow axis";
+axis.innerHTML = `<span></span><span class="dhtrack">${DH_REFS.map(r =>
+  `<span class="tick" style="left:${pos(r)}">${NF.format(r)}</span>`).join("")}</span><span class="val">°C.h</span><span class="nb">bât.</span>`;
+dhBox.appendChild(axis);
+for (const z of ZONE_ORDER) {
+  const d = DH.zones[z];
+  if (!d) continue;
+  const row = document.createElement("div");
+  row.className = "dhrow";
+  row.title = `${z} : DH médian ${NF.format(d.m)} °C.h sur ${NF.format(d.n)} bâtiments conformes`;
+  row.innerHTML =
+    `<span class="code"><span class="dot" style="background:var(--${z})"></span>${z}</span>` +
+    `<span class="dhtrack"><span class="base"></span><span class="fill" style="width:${pos(Math.min(d.m, DH_SCALE))};background:var(--${z})"></span>${refsHtml}</span>` +
+    `<span class="val">${NF.format(d.m)}</span>` +
+    `<span class="nb">${NF.format(d.n)}</span>`;
+  row.addEventListener("mouseenter", () => { if (!lockedZone) setFocus(z); });
+  row.addEventListener("mouseleave", () => { if (!lockedZone) setFocus(null); });
+  dhBox.appendChild(row);
+}
+if (DH.all) {
+  dhTotal.textContent = `Toutes zones : médiane ${NF.format(DH.all.m)} °C.h sur ${NF.format(DH.all.n)} bâtiments conformes. ` +
+    `Traits : 350 °C.h (pénalité dans le Cep au-delà) et 1 250 °C.h (DH max).`;
+}
+
+// ---------------------------------------------------------------------------
+// Boîtes dépliables : état mémorisé dans le navigateur du visiteur (tout ouvert par défaut)
+// ---------------------------------------------------------------------------
+const boxes = [...document.querySelectorAll("details.box")];
+try {
+  const saved = JSON.parse(localStorage.getItem(BOX_STORE_KEY) || "{}");
+  for (const b of boxes) if (b.id in saved) b.open = !!saved[b.id];
+} catch (e) { /* stockage indisponible : on garde l'état par défaut */ }
+for (const b of boxes) {
+  b.addEventListener("toggle", () => {
+    try {
+      localStorage.setItem(BOX_STORE_KEY, JSON.stringify(Object.fromEntries(boxes.map(x => [x.id, x.open]))));
+    } catch (e) { /* stockage indisponible : pas de mémorisation */ }
+  });
+}
+
+// ---------------------------------------------------------------------------
 // Couches : chaque interrupteur pose ou retire une classe sur la carte
 // ---------------------------------------------------------------------------
 for (const [id, cls] of Object.entries(TOGGLES)) {
@@ -690,7 +793,9 @@ function showDept(path) {
     `<span class="num">Département ${code}</span>` +
     `<p class="name">${d.n}</p>` +
     `<p class="region">${d.r}</p>` +
-    `<span class="pill" style="background:var(--${d.z})">Zone ${d.z}</span>` +
+    `<div class="tags"><span class="pill" style="background:var(--${d.z})">Zone ${d.z}</span>` +
+    (DH.zones[d.z] ? `<span class="dh-tag" style="border-color:var(--${d.z})" title="DH médian de la zone ${d.z} (open data OPEE, ${NF.format(DH.zones[d.z].n)} bâtiments conformes)">DH méd. <b>${NF.format(DH.zones[d.z].m)}</b> °C.h</span>` : "") +
+    `</div>` +
     `<p class="stock"><b>${NF.format(d.l)}</b> logements en 2022<br>` +
     `${NF1.format(d.rp)} % résidences principales · ${NF1.format(d.rs)} % secondaires · ${NF1.format(d.lv)} % vacants</p>`;
 }

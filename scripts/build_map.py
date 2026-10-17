@@ -21,7 +21,7 @@ from shapely.ops import unary_union, polylabel
 # ---------------------------------------------------------------------------
 # Paramètres (regroupés en tête pour la lisibilité)
 # ---------------------------------------------------------------------------
-VERSION = "1.1.1"             # version de la carte (SemVer) — à reporter dans CHANGELOG.md et en tag git
+VERSION = "1.1.2"             # version de la carte (SemVer) — à reporter dans CHANGELOG.md et en tag git
 BUILD_DATE = datetime.date.today().strftime("%d/%m/%Y")   # date de génération affichée en pied de page
 REPO_URL = "https://github.com/Alliages/zones-climatiques-re2020"
 # Icônes de l'onglet (fichiers à la racine du dépôt, à côté de index.html)
@@ -55,6 +55,12 @@ DH_PATH = os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "data",
 DH_EXTRACTION = "18/10/2026"            # date d'extraction OPEE affichée dans la note de source
 DH_REFS = [350, 1250]                   # traits de référence (°C.h) : seuil bas et DH max courant
 DH_SCALE_MAX = 1300                     # borne de l'échelle des barres (°C.h)
+# Étiquettes « DH médian » sur la carte (couche optionnelle) : boîte arrondie semi-transparente
+DH_LABEL_FONT = 14                      # taille du texte (unités du viewBox)
+DH_LABEL_CHAR_W = 0.6                   # largeur d'un caractère en police mono (fraction de la taille)
+DH_LABEL_PAD_X, DH_LABEL_H, DH_LABEL_RX = 8, 22, 7
+DH_LABEL_DY = 30                        # position sous le nom de zone (centre de la boîte)
+DH_LABEL_DY_SPECIAL = {"H2d": -29, "H3": -34}   # au-dessus du nom : évite Avignon et Perpignan
 # Palette des zones, du plus clair au plus foncé : attribuée aux zones par DH médian croissant
 PALETTE_ZONES = ["#fbdf72", "#f9cf52", "#f6bd3a", "#f4a930", "#f09528", "#e88021", "#da691a", "#c25212"]
 
@@ -206,6 +212,7 @@ for i, a in enumerate(ZONES):
 zone_border_d = "".join(zone_lines)
 
 zone_labels = []
+zone_pos = {}                           # position finale du nom de chaque zone (réutilisée pour le DH)
 for z in ZONES:
     g = zone_union[z]
     biggest = max(g.geoms, key=lambda p: p.area) if g.geom_type == "MultiPolygon" else g
@@ -213,6 +220,7 @@ for z in ZONES:
     x, y = proj(pt.x, pt.y)
     dx, dy = ZONE_LABEL_NUDGE.get(z, (0, 0))
     zone_labels.append(f'<text class="zlabel" x="{x + dx:.1f}" y="{y + dy:.1f}">{z}</text>')
+    zone_pos[z] = (x + dx, y + dy)
 
 # 3. Pays voisins (gris) et masse terrestre pour le halo côtier
 countries = load("ne_50m_admin_0_countries")
@@ -329,6 +337,21 @@ assert sorted(ordre_dh) == sorted(ZONES), "DH manquant pour une zone"
 zone_colors_css = "\n".join(f"  --{z}: {PALETTE_ZONES[i]};" for i, z in enumerate(ordre_dh))
 print("Ordre DH :", " < ".join(ordre_dh))
 
+# Étiquettes DH médian : boîte arrondie + texte, centrées sous (ou sur) le nom de zone
+def fr_milliers(n):
+    return f"{n:,}".replace(",", "\u202f")          # espace fine insécable comme séparateur
+
+dh_labels = []
+for z, (x, y) in zone_pos.items():
+    if z not in dh["zones"]:
+        continue
+    texte = f"DH méd. {fr_milliers(dh['zones'][z]['m'])} °C.h"
+    w = len(texte) * DH_LABEL_FONT * DH_LABEL_CHAR_W + 2 * DH_LABEL_PAD_X
+    cy = y + DH_LABEL_DY_SPECIAL.get(z, DH_LABEL_DY)
+    dh_labels.append(
+        f'<g class="dhlabel"><rect x="{x - w / 2:.1f}" y="{cy - DH_LABEL_H / 2:.1f}" width="{w:.1f}" '
+        f'height="{DH_LABEL_H}" rx="{DH_LABEL_RX}"/><text x="{x:.1f}" y="{cy:.1f}">{texte}</text></g>')
+
 # ---------------------------------------------------------------------------
 # Assemblage
 # ---------------------------------------------------------------------------
@@ -350,6 +373,7 @@ for key, val in {
     "__CONTEXT__": "\n".join(context_svg),
     "__DEPLABELS__": "\n".join(dep_labels),
     "__ZONE_COLORS__": zone_colors_css,
+    "__DHLABELS__": "\n".join(dh_labels),
     "__DH__": json.dumps(dh), "__DH_DATE__": DH_EXTRACTION,
     "__DH_REFS__": json.dumps(DH_REFS), "__DH_SCALE__": str(DH_SCALE_MAX),
     "__VERSION__": VERSION, "__BUILD_DATE__": BUILD_DATE, "__REPO_URL__": REPO_URL,

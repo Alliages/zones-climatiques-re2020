@@ -7,6 +7,11 @@ Numérotation [SemVer](https://semver.org/lang/fr/) :
 
 La version est définie par la constante `VERSION` en tête de `scripts/build_map.py`, affichée en pied de page et reportée en tag git (`vX.Y.Z`).
 
+## [1.1.2] — 18/10/2026
+
+### Ajouté
+- Couche « DH médian sur la carte » (masquée par défaut) : sous le nom de chaque zone, une étiquette « DH méd. xxx °C.h » dans une boîte arrondie sombre semi-transparente, pour se distinguer des noms de villes. Pour H2d et H3, l'étiquette est placée au-dessus du nom afin d'éviter Avignon et Perpignan. Étiquettes générées par `scripts/build_map.py` (paramètres `DH_LABEL_*`) à partir de `data/dh_median_opee.csv`.
+
 ## [1.1.1] — 18/10/2026
 
 ### Modifié

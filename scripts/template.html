@@ -75,9 +75,14 @@ h1 {
 .map svg { width: 100%; height: auto; display: block; border-radius: 14px; }
 
 /* Couches de contexte (essai) : masquées sauf si l'interrupteur est actif */
-.layer-context, .layer-relief, .layer-deplabels, .layer-cities { display: none; }
+.layer-context, .layer-relief, .layer-deplabels, .layer-cities, .layer-dhlabels { display: none; }
 svg.show-context .layer-context, svg.show-relief .layer-relief,
-svg.show-deps .layer-deplabels, svg.show-cities .layer-cities { display: inline; }
+svg.show-deps .layer-deplabels, svg.show-cities .layer-cities, svg.show-dhlabels .layer-dhlabels { display: inline; }
+/* Étiquettes DH médian : boîte sombre semi-transparente, texte clair (se distingue des villes) */
+.dhlabel { pointer-events: none; }
+.dhlabel rect { fill: rgba(43, 34, 25, .74); stroke: rgba(255, 246, 224, .55); stroke-width: 1; }
+.dhlabel text { font-family: var(--font-mono); font-size: 14px; font-weight: 500; fill: #fff6e0;
+  text-anchor: middle; dominant-baseline: central; }
 svg.show-deps .zlabel, svg.show-deps .mlabel { opacity: .28; }
 .neigh { fill: var(--neigh); stroke: var(--neigh-line); stroke-width: .8; }
 .coast-halo { fill: var(--sea-shallow); filter: url(#blur); }
@@ -307,6 +312,9 @@ __DEPLABELS__
         <g id="cities" class="layer-cities">
 __CITIES__
         </g>
+        <g class="layer-dhlabels">
+__DHLABELS__
+        </g>
       </svg>
     </div>
 
@@ -322,6 +330,11 @@ __CITIES__
           <label class="toggle" for="t-cities">
             <span>Villes</span>
             <input type="checkbox" id="t-cities" checked>
+            <span class="track"></span>
+          </label>
+          <label class="toggle" for="t-dhmap">
+            <span>DH médian sur la carte<small>Valeur affichée sur chaque zone (logements collectifs, OPEE)</small></span>
+            <input type="checkbox" id="t-dhmap">
             <span class="track"></span>
           </label>
           <label class="toggle" for="t-deps">
@@ -402,7 +415,8 @@ const dhBox = document.getElementById("dh");
 const dhTotal = document.getElementById("dh-total");
 // Interrupteur → classe CSS posée sur la carte
 const TOGGLES = { "t-context": "show-context", "t-relief": "show-relief",
-                  "t-cities": "show-cities", "t-deps": "show-deps" };
+                  "t-cities": "show-cities", "t-deps": "show-deps",
+                  "t-dhmap": "show-dhlabels" };
 let lockedZone = null;            // zone isolée par clic dans la légende
 let activePath = null;            // département mis en avant
 

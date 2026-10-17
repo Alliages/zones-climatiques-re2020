@@ -91,9 +91,14 @@ h1 {
 .map svg { width: 100%; height: auto; display: block; border-radius: 14px; }
 
 /* Couches de contexte (essai) : masquées sauf si l'interrupteur est actif */
-.layer-context, .layer-relief, .layer-deplabels, .layer-cities { display: none; }
+.layer-context, .layer-relief, .layer-deplabels, .layer-cities, .layer-dhlabels { display: none; }
 svg.show-context .layer-context, svg.show-relief .layer-relief,
-svg.show-deps .layer-deplabels, svg.show-cities .layer-cities { display: inline; }
+svg.show-deps .layer-deplabels, svg.show-cities .layer-cities, svg.show-dhlabels .layer-dhlabels { display: inline; }
+/* Étiquettes DH médian : boîte sombre semi-transparente, texte clair (se distingue des villes) */
+.dhlabel { pointer-events: none; }
+.dhlabel rect { fill: rgba(43, 34, 25, .74); stroke: rgba(255, 246, 224, .55); stroke-width: 1; }
+.dhlabel text { font-family: var(--font-mono); font-size: 14px; font-weight: 500; fill: #fff6e0;
+  text-anchor: middle; dominant-baseline: central; }
 svg.show-deps .zlabel, svg.show-deps .mlabel { opacity: .28; }
 .neigh { fill: var(--neigh); stroke: var(--neigh-line); stroke-width: .8; }
 .coast-halo { fill: var(--sea-shallow); filter: url(#blur); }
@@ -570,6 +575,16 @@ body { margin: 0; }
 <g class="city"><circle cx="542.0" cy="803.3" r="4.2"/><text x="551.0" y="809.3" text-anchor="start">Perpignan</text></g>
 <g class="city"><circle cx="906.8" cy="873.1" r="4.2"/><text x="897.8" y="879.1" text-anchor="end">Ajaccio</text></g>
         </g>
+        <g class="layer-dhlabels">
+<g class="dhlabel"><rect x="444.2" y="207.6" width="150.4" height="22" rx="7"/><text x="519.4" y="218.6">DH méd. 619 °C.h</text></g>
+<g class="dhlabel"><rect x="591.8" y="285.2" width="150.4" height="22" rx="7"/><text x="667.0" y="296.2">DH méd. 452 °C.h</text></g>
+<g class="dhlabel"><rect x="596.1" y="490.8" width="150.4" height="22" rx="7"/><text x="671.3" y="501.8">DH méd. 404 °C.h</text></g>
+<g class="dhlabel"><rect x="118.4" y="339.4" width="150.4" height="22" rx="7"/><text x="193.6" y="350.4">DH méd. 216 °C.h</text></g>
+<g class="dhlabel"><rect x="238.1" y="463.3" width="150.4" height="22" rx="7"/><text x="313.3" y="474.3">DH méd. 654 °C.h</text></g>
+<g class="dhlabel"><rect x="271.3" y="716.4" width="150.4" height="22" rx="7"/><text x="346.5" y="727.4">DH méd. 614 °C.h</text></g>
+<g class="dhlabel"><rect x="549.1" y="611.9" width="150.4" height="22" rx="7"/><text x="624.3" y="622.9">DH méd. 897 °C.h</text></g>
+<g class="dhlabel"><rect x="427.8" y="730.7" width="167.2" height="22" rx="7"/><text x="511.4" y="741.7">DH méd. 1 103 °C.h</text></g>
+        </g>
       </svg>
     </div>
 
@@ -585,6 +600,11 @@ body { margin: 0; }
           <label class="toggle" for="t-cities">
             <span>Villes</span>
             <input type="checkbox" id="t-cities" checked>
+            <span class="track"></span>
+          </label>
+          <label class="toggle" for="t-dhmap">
+            <span>DH médian sur la carte<small>Valeur affichée sur chaque zone (logements collectifs, OPEE)</small></span>
+            <input type="checkbox" id="t-dhmap">
             <span class="track"></span>
           </label>
           <label class="toggle" for="t-deps">
@@ -628,7 +648,7 @@ body { margin: 0; }
     <p>Zones issues du tableau fourni, découpage départemental. Logements : Insee, recensement de la population 2022 (résidences principales, secondaires, occasionnelles et logements vacants). Fleuves, lacs, pays voisins et noms des massifs : Natural Earth.</p>
     <p>Altitude : modèle numérique de terrain (~90 m) agrégé à ~500 m, classes 400–800 m et &gt; 800 m, îlots et creux de moins de 70 km² retirés, contour simplifié à ~1 km. Représentation indicative : la classe d'altitude RE2020 d'un projet se détermine à l'altitude réelle du terrain.</p>
     <p>DH (degrés-heures d'inconfort estival) : médiane par zone d'une sélection de logements collectifs conformes de l'open data OPEE (RE2020), extraction du 18/10/2026. Traits de référence à 350 °C.h et 1 250 °C.h. Les couleurs des zones vont du plus clair au plus foncé selon leur DH médian.</p>
-    <p class="version">Version 1.1.1 · générée le 18/10/2026 · <a href="https://github.com/Alliages/zones-climatiques-re2020">code source et historique des versions</a></p>
+    <p class="version">Version 1.1.2 · générée le 18/10/2026 · <a href="https://github.com/Alliages/zones-climatiques-re2020">code source et historique des versions</a></p>
   </footer>
 </div>
 
@@ -665,7 +685,8 @@ const dhBox = document.getElementById("dh");
 const dhTotal = document.getElementById("dh-total");
 // Interrupteur → classe CSS posée sur la carte
 const TOGGLES = { "t-context": "show-context", "t-relief": "show-relief",
-                  "t-cities": "show-cities", "t-deps": "show-deps" };
+                  "t-cities": "show-cities", "t-deps": "show-deps",
+                  "t-dhmap": "show-dhlabels" };
 let lockedZone = null;            // zone isolée par clic dans la légende
 let activePath = null;            // département mis en avant
 

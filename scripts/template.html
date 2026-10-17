@@ -1,0 +1,440 @@
+<title>Zones climatiques RE2020</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700&family=Public+Sans:ital,wght@0,400;0,500;0,600;1,400&family=IBM+Plex+Mono:wght@500&display=swap">
+<style>
+/* Carte pleine largeur à gauche, légende + couches + fiche département à droite ; une seule colonne sur téléphone */
+:root {
+  --bg: #f3f1ec;
+  --surface: #fbfaf7;
+  --ink: #2b2219;
+  --muted: #74685a;
+  --line: #ddd6ca;
+  --accent: #c4500f;
+  /* Palette des zones : du jaune (H1a) à l'orange brûlé (H3) — identique dans les deux thèmes */
+  --H1a: #fbdf72; --H1b: #f9cf52; --H1c: #f6bd3a;
+  --H2a: #f4a930; --H2b: #f09528; --H2c: #e88021; --H2d: #da691a;
+  --H3:  #c25212;
+  --on-zone: #2b2219;                       /* texte posé sur les aplats de zone */
+  --zone-halo: rgba(255, 249, 232, .72);
+  --zone-line: rgba(70, 38, 10, .78);       /* limites entre zones */
+  --dep-line: rgba(255, 255, 255, .8);      /* limites entre départements */
+  /* Contexte géographique */
+  --sea-deep: #8fb6d3;
+  --sea-mid: #b5d0e3;
+  --sea-shallow: #dcebf4;
+  --neigh: #d9d7d2;
+  --neigh-line: #c4c1bb;
+  --river: #5f93b8;
+  --relief: #6b4a2b;
+  --font-display: "Bricolage Grotesque", "Avenir Next", "Segoe UI", sans-serif;
+  --font-body: "Public Sans", "Helvetica Neue", Arial, sans-serif;
+  --font-mono: "IBM Plex Mono", ui-monospace, Menlo, monospace;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #1a1713; --surface: #24201a; --ink: #f3eadc; --muted: #b3a593;
+    --line: #3a332a; --accent: #f59a4a;
+    --dep-line: rgba(26, 23, 19, .45);
+    --sea-deep: #18324a; --sea-mid: #234561; --sea-shallow: #33607f;
+    --neigh: #3b3832; --neigh-line: #4a463f; --river: #8cc0e3; --relief: #4a2c12;
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #1a1713; --surface: #24201a; --ink: #f3eadc; --muted: #b3a593;
+  --line: #3a332a; --accent: #f59a4a;
+  --dep-line: rgba(26, 23, 19, .45);
+  --sea-deep: #18324a; --sea-mid: #234561; --sea-shallow: #33607f;
+  --neigh: #3b3832; --neigh-line: #4a463f; --river: #8cc0e3; --relief: #4a2c12;
+  color-scheme: dark;
+}
+
+body {
+  background: var(--bg); color: var(--ink);
+  font-family: var(--font-body); font-size: 15px; line-height: 1.5;
+  padding-left: max(16px, env(safe-area-inset-left, 0px));
+  padding-right: max(16px, env(safe-area-inset-right, 0px));
+}
+.wrap { max-width: 1200px; margin: 0 auto; padding-block: 32px 40px; display: grid; gap: 24px; }
+
+/* En-tête */
+header { display: grid; gap: 6px; }
+.eyebrow { font-family: var(--font-mono); font-size: 12px; letter-spacing: .08em; text-transform: uppercase; color: var(--accent); }
+h1 {
+  font-family: var(--font-display); font-weight: 700; font-size: clamp(30px, 5vw, 48px);
+  line-height: 1.05; margin: 0; text-wrap: balance; letter-spacing: -.01em;
+}
+.lede { margin: 0; color: var(--muted); max-width: 62ch; }
+
+/* Grille principale */
+.layout { display: grid; grid-template-columns: minmax(0, 1fr) 290px; gap: 28px; align-items: start; }
+@media (max-width: 860px) { .layout { grid-template-columns: minmax(0, 1fr); } }
+
+/* ---------------- Carte ---------------- */
+.map { min-width: 0; }
+.map svg { width: 100%; height: auto; display: block; border-radius: 14px; }
+
+/* Couches de contexte (essai) : masquées sauf si l'interrupteur est actif */
+.layer-context, .layer-relief, .layer-deplabels, .layer-cities { display: none; }
+svg.show-context .layer-context, svg.show-relief .layer-relief,
+svg.show-deps .layer-deplabels, svg.show-cities .layer-cities { display: inline; }
+svg.show-deps .zlabel, svg.show-deps .mlabel { opacity: .28; }
+.neigh { fill: var(--neigh); stroke: var(--neigh-line); stroke-width: .8; }
+.coast-halo { fill: var(--sea-shallow); filter: url(#blur); }
+
+/* Départements et zones */
+.dep {
+  stroke: var(--dep-line); stroke-width: .9; stroke-linejoin: round;
+  transition: opacity .2s ease; cursor: pointer;
+}
+.dep:hover, .dep.active { stroke: var(--on-zone); stroke-width: 2.2; }
+svg[data-focus] .dep { opacity: .2; }
+svg[data-focus="H1a"] .z-H1a, svg[data-focus="H1b"] .z-H1b, svg[data-focus="H1c"] .z-H1c,
+svg[data-focus="H2a"] .z-H2a, svg[data-focus="H2b"] .z-H2b, svg[data-focus="H2c"] .z-H2c,
+svg[data-focus="H2d"] .z-H2d, svg[data-focus="H3"] .z-H3 { opacity: 1; }
+.z-H1a { fill: var(--H1a); } .z-H1b { fill: var(--H1b); } .z-H1c { fill: var(--H1c); }
+.z-H2a { fill: var(--H2a); } .z-H2b { fill: var(--H2b); } .z-H2c { fill: var(--H2c); }
+.z-H2d { fill: var(--H2d); } .z-H3 { fill: var(--H3); }
+.zone-borders { fill: none; stroke: var(--zone-line); stroke-width: 1.9; stroke-linejoin: round; stroke-linecap: round; pointer-events: none; }
+.france-outline { fill: none; stroke: var(--zone-line); stroke-width: 1.4; pointer-events: none; }
+
+/* Hydrographie : discrète */
+.lakes { fill: var(--sea-mid); stroke: var(--river); stroke-width: .6; opacity: .9; pointer-events: none; }
+.rivers { fill: none; stroke: var(--river); stroke-linecap: round; stroke-linejoin: round; pointer-events: none; opacity: .75; }
+.rivers.main { stroke-width: 1.7; }
+.rivers.second { stroke-width: .9; opacity: .6; }
+
+/* Massifs (essai) */
+.massifs path { fill: url(#hatch); stroke: var(--relief); stroke-width: 1.2; stroke-dasharray: 4 3; opacity: .85; pointer-events: none; }
+.hatch-line { stroke: var(--relief); stroke-width: 1.4; opacity: .38; }
+.mlabel {
+  font-family: var(--font-body); font-style: italic; font-size: 17px; fill: var(--relief);
+  text-anchor: middle; paint-order: stroke; stroke: var(--zone-halo); stroke-width: 4px; pointer-events: none;
+}
+
+/* Étiquettes */
+.zlabel {
+  font-family: var(--font-display); font-weight: 700; font-size: 30px; letter-spacing: .02em;
+  fill: var(--on-zone); text-anchor: middle; dominant-baseline: middle;
+  paint-order: stroke; stroke: var(--zone-halo); stroke-width: 6px; stroke-linejoin: round; pointer-events: none;
+}
+svg[data-focus] .zlabel { opacity: .35; }
+.dlabel {
+  font-family: var(--font-body); font-weight: 500; font-size: 10.5px; fill: var(--on-zone);
+  text-anchor: middle; paint-order: stroke; stroke: var(--zone-halo); stroke-width: 3px;
+  stroke-linejoin: round; pointer-events: none;
+}
+.dlabel.code { font-family: var(--font-mono); font-size: 9px; }
+.city { pointer-events: none; }
+.city circle { fill: var(--ink); stroke: var(--bg); stroke-width: 2.4; }
+.city text {
+  font-family: var(--font-body); font-weight: 600; font-size: 16px; fill: var(--ink);
+  paint-order: stroke; stroke: var(--bg); stroke-width: 4.5px; stroke-linejoin: round;
+}
+.ctx { font-family: var(--font-body); text-anchor: middle; pointer-events: none; }
+.ctx.country { font-size: 15px; font-weight: 600; letter-spacing: .14em; text-transform: uppercase; fill: var(--muted); }
+.ctx.sea { font-size: 17px; font-style: italic; letter-spacing: .06em; fill: var(--river); }
+@media (max-width: 520px) {
+  .city text { font-size: 21px; } .zlabel { font-size: 36px; } .mlabel { font-size: 21px; }
+  .ctx.country { font-size: 19px; } .ctx.sea { font-size: 21px; }
+  .dlabel { font-size: 13px; } .dlabel.code { font-size: 11px; }
+}
+
+/* ---------------- Colonne latérale ---------------- */
+aside { display: grid; gap: 22px; min-width: 0; }
+.panel-title { font-family: var(--font-mono); font-size: 11.5px; letter-spacing: .08em; text-transform: uppercase; color: var(--muted); margin: 0 0 8px; }
+.legend { display: grid; gap: 14px; }
+.group { display: grid; gap: 2px; }
+.group-name { font-family: var(--font-display); font-weight: 500; font-size: 15px; margin: 0 0 2px; }
+.zone {
+  display: grid; grid-template-columns: 22px 44px 1fr auto; align-items: center; gap: 10px;
+  width: 100%; padding: 5px 8px; border: 1px solid transparent; border-radius: 6px;
+  background: none; color: var(--ink); font: inherit; text-align: left; cursor: pointer;
+}
+.zone:hover { background: var(--surface); border-color: var(--line); }
+.zone:focus-visible, .toggle input:focus-visible + .track { outline: 2px solid var(--accent); outline-offset: 2px; }
+.zone[aria-pressed="true"] { background: var(--surface); border-color: var(--ink); }
+.swatch { width: 22px; height: 16px; border-radius: 3px; box-shadow: inset 0 0 0 1px rgba(0,0,0,.1); }
+.code { font-family: var(--font-mono); font-size: 13.5px; }
+.bar { height: 6px; border-radius: 3px; background: var(--line); overflow: hidden; }
+.bar span { display: block; height: 100%; }
+.count { font-variant-numeric: tabular-nums; font-size: 13px; color: var(--muted); min-width: 2ch; text-align: right; }
+
+/* Logements par zone */
+.housing { display: grid; gap: 4px; }
+.hrow { display: grid; grid-template-columns: 44px 1fr 58px 44px; align-items: center; gap: 8px; padding: 2px 8px; font-size: 13.5px; }
+.hrow .code { display: flex; align-items: center; gap: 6px; }
+.hrow .dot { width: 10px; height: 10px; border-radius: 2px; flex: none; }
+.hrow .val, .hrow .pct { font-variant-numeric: tabular-nums; text-align: right; }
+.hrow .pct { color: var(--muted); font-size: 12.5px; }
+.housing-total { margin: 8px 8px 0; font-size: 12.5px; color: var(--muted); line-height: 1.4; }
+
+/* Interrupteurs des couches */
+.toggles { display: grid; gap: 10px; }
+.toggle { display: grid; grid-template-columns: 1fr auto; gap: 12px; align-items: center; cursor: pointer; }
+.toggle small { display: block; color: var(--muted); font-size: 12.5px; line-height: 1.35; }
+.toggle input { position: absolute; opacity: 0; width: 1px; height: 1px; }
+.track { width: 38px; height: 22px; border-radius: 999px; background: var(--line); position: relative; transition: background .2s; }
+.track::after {
+  content: ""; position: absolute; top: 3px; left: 3px; width: 16px; height: 16px; border-radius: 50%;
+  background: var(--surface); box-shadow: 0 1px 2px rgba(0,0,0,.25); transition: transform .2s;
+}
+.toggle input:checked + .track { background: var(--accent); }
+.toggle input:checked + .track::after { transform: translateX(16px); }
+
+/* Fiche département */
+.card { background: var(--surface); border: 1px solid var(--line); border-radius: 10px; padding: 16px; display: grid; gap: 6px; min-height: 128px; }
+.card .num { font-family: var(--font-mono); font-size: 13px; color: var(--muted); }
+.card .name { font-family: var(--font-display); font-weight: 700; font-size: 24px; line-height: 1.15; margin: 0; }
+.card .region { color: var(--muted); margin: 0; }
+.card .stock { margin: 6px 0 0; font-size: 13.5px; line-height: 1.45; border-top: 1px solid var(--line); padding-top: 8px; }
+.card .stock b { font-variant-numeric: tabular-nums; }
+.pill { justify-self: start; margin-top: 4px; font-family: var(--font-mono); font-size: 14px; padding: 3px 10px; border-radius: 999px; color: var(--on-zone); }
+
+footer { color: var(--muted); font-size: 13px; border-top: 1px solid var(--line); padding-top: 14px; display: grid; gap: 4px; }
+footer p { margin: 0; max-width: 90ch; }
+footer .version { font-family: var(--font-mono); font-size: 12px; margin-top: 6px; }
+footer a { color: var(--accent); }
+
+@media (prefers-reduced-motion: reduce) { .dep, .track, .track::after { transition: none; } }
+</style>
+
+<div class="wrap">
+  <header>
+    <span class="eyebrow">RE2020 · France métropolitaine · 96 départements</span>
+    <h1>Zones climatiques RE2020</h1>
+    <p class="lede">Chaque département est rattaché à l'une des huit zones climatiques, de H1a au nord à H3 sur le littoral méditerranéen. Survolez un département pour sa fiche, cliquez une zone de la légende pour l'isoler.</p>
+  </header>
+
+  <div class="layout">
+    <div class="map">
+      <svg id="map" class="show-context show-relief show-cities" viewBox="__VIEWBOX__" role="img" aria-label="Carte des zones climatiques RE2020 par département">
+        <defs>
+          <linearGradient id="sea" x1="0" y1="0" x2="1" y2="1">
+            <stop offset="0" style="stop-color: var(--sea-deep)"/>
+            <stop offset=".55" style="stop-color: var(--sea-mid)"/>
+            <stop offset="1" style="stop-color: var(--sea-deep)"/>
+          </linearGradient>
+          <filter id="blur" x="-10%" y="-10%" width="120%" height="120%"><feGaussianBlur stdDeviation="16"/></filter>
+          <pattern id="hatch" width="8" height="8" patternUnits="userSpaceOnUse" patternTransform="rotate(45)">
+            <line class="hatch-line" x1="0" y1="0" x2="0" y2="8"/>
+          </pattern>
+        </defs>
+
+        <!-- Essai : mers en dégradé + halo côtier + pays voisins -->
+        <g class="layer-context">
+          <rect width="__VW__" height="__VH__" fill="url(#sea)"/>
+          <path class="coast-halo" d="__LAND__"/>
+          <path class="neigh" d="__NEIGH__"/>
+        </g>
+
+        <!-- Départements colorés par zone -->
+        <g id="deps">
+__PATHS__
+        </g>
+        <path class="zone-borders" d="__ZONEBORDERS__"/>
+        <path class="france-outline" d="__FRANCE__"/>
+
+        <!-- Hydrographie (fait partie de la couche « mers, fleuves et pays voisins ») -->
+        <g class="layer-context">
+          <path class="lakes" d="__LAKES__"/>
+          <path class="rivers second" d="__RIVERS_SECOND__"/>
+          <path class="rivers main" d="__RIVERS_MAIN__"/>
+        </g>
+
+        <!-- Essai : massifs montagneux -->
+        <g class="layer-relief massifs">
+__MASSIFS__
+        </g>
+
+        <!-- Étiquettes -->
+        <g class="layer-context">
+__CONTEXT__
+        </g>
+        <g id="zone-labels">
+__ZONELABELS__
+        </g>
+        <g class="layer-relief">
+__MASSIF_LABELS__
+        </g>
+        <g class="layer-deplabels">
+__DEPLABELS__
+        </g>
+        <g id="cities" class="layer-cities">
+__CITIES__
+        </g>
+      </svg>
+    </div>
+
+    <aside>
+      <div class="card" id="card" aria-live="polite"></div>
+
+      <div>
+        <p class="panel-title">Zones · nombre de départements</p>
+        <div class="legend" id="legend"></div>
+      </div>
+
+      <div>
+        <p class="panel-title">Logements par zone · INSEE 2022</p>
+        <div class="housing" id="housing"></div>
+        <p class="housing-total" id="housing-total"></p>
+      </div>
+
+      <div>
+        <p class="panel-title">Couches</p>
+        <div class="toggles">
+          <label class="toggle" for="t-cities">
+            <span>Villes</span>
+            <input type="checkbox" id="t-cities" checked>
+            <span class="track"></span>
+          </label>
+          <label class="toggle" for="t-deps">
+            <span>Noms des départements</span>
+            <input type="checkbox" id="t-deps">
+            <span class="track"></span>
+          </label>
+          <label class="toggle" for="t-context">
+            <span>Mers, fleuves et pays voisins<small>Dégradé bleu, halo côtier, hydrographie, voisins en gris</small></span>
+            <input type="checkbox" id="t-context" checked>
+            <span class="track"></span>
+          </label>
+          <label class="toggle" for="t-relief">
+            <span>Massifs montagneux<small>Alpes, Pyrénées, Massif central, Jura, Vosges</small></span>
+            <input type="checkbox" id="t-relief" checked>
+            <span class="track"></span>
+          </label>
+        </div>
+      </div>
+    </aside>
+  </div>
+
+  <footer>
+    <p>Zones issues du tableau fourni, découpage départemental. Logements : Insee, recensement de la population 2022 (résidences principales, secondaires, occasionnelles et logements vacants). Fleuves, lacs, pays voisins et massifs : Natural Earth.</p>
+    <p>Les contours des massifs sont indicatifs. Ils ne correspondent pas aux classes d'altitude que la RE2020 applique en plus de la zone climatique.</p>
+    <p class="version">Version __VERSION__ · générée le __BUILD_DATE__ · <a href="__REPO_URL__">code source et historique des versions</a></p>
+  </footer>
+</div>
+
+<script>
+// ---------------------------------------------------------------------------
+// Données et éléments (regroupés en tête)
+// ---------------------------------------------------------------------------
+const DEPTS = __DATA__;            // code → { r: région, n: nom, z: zone }
+const COUNTS = __COUNTS__;         // zone → nombre de départements
+const LOGEMENTS = __LOGEMENTS__;   // zone → { l: logements, rp: résidences principales }
+const ZONE_ORDER = ["H1a", "H1b", "H1c", "H2a", "H2b", "H2c", "H2d", "H3"];
+const NF = new Intl.NumberFormat("fr-FR");
+const NF1 = new Intl.NumberFormat("fr-FR", { minimumFractionDigits: 1, maximumFractionDigits: 1 });
+const GROUPS = [
+  ["Zone H1", ["H1a", "H1b", "H1c"]],
+  ["Zone H2", ["H2a", "H2b", "H2c", "H2d"]],
+  ["Zone H3", ["H3"]],
+];
+const MAX_COUNT = Math.max(...Object.values(COUNTS));
+const svg = document.getElementById("map");
+const card = document.getElementById("card");
+const legend = document.getElementById("legend");
+const housing = document.getElementById("housing");
+const housingTotal = document.getElementById("housing-total");
+// Interrupteur → classe CSS posée sur la carte
+const TOGGLES = { "t-context": "show-context", "t-relief": "show-relief",
+                  "t-cities": "show-cities", "t-deps": "show-deps" };
+let lockedZone = null;            // zone isolée par clic dans la légende
+let activePath = null;            // département mis en avant
+
+// ---------------------------------------------------------------------------
+// Légende : un bouton par zone, barre proportionnelle au nombre de départements
+// ---------------------------------------------------------------------------
+for (const [label, zones] of GROUPS) {
+  const g = document.createElement("div");
+  g.className = "group";
+  g.innerHTML = `<p class="group-name">${label}</p>`;
+  for (const z of zones) {
+    const b = document.createElement("button");
+    b.className = "zone";
+    b.id = "zone-" + z;
+    b.type = "button";
+    b.dataset.zone = z;
+    b.setAttribute("aria-pressed", "false");
+    b.innerHTML =
+      `<span class="swatch" style="background:var(--${z})"></span>` +
+      `<span class="code">${z}</span>` +
+      `<span class="bar"><span style="width:${(COUNTS[z] / MAX_COUNT) * 100}%;background:var(--${z})"></span></span>` +
+      `<span class="count">${COUNTS[z]}</span>`;
+    b.addEventListener("mouseenter", () => { if (!lockedZone) setFocus(z); });
+    b.addEventListener("mouseleave", () => { if (!lockedZone) setFocus(null); });
+    b.addEventListener("click", () => {
+      lockedZone = lockedZone === z ? null : z;
+      legend.querySelectorAll(".zone").forEach(el =>
+        el.setAttribute("aria-pressed", String(el.dataset.zone === lockedZone)));
+      setFocus(lockedZone);
+    });
+    g.appendChild(b);
+  }
+  legend.appendChild(g);
+}
+
+function setFocus(zone) {
+  if (zone) svg.setAttribute("data-focus", zone);
+  else svg.removeAttribute("data-focus");
+}
+
+// ---------------------------------------------------------------------------
+// Logements par zone : barre, effectif en millions, part du parc métropolitain
+// ---------------------------------------------------------------------------
+const TOTAL_LOG = ZONE_ORDER.reduce((s, z) => s + LOGEMENTS[z].l, 0);
+const TOTAL_RP = ZONE_ORDER.reduce((s, z) => s + LOGEMENTS[z].rp, 0);
+const MAX_LOG = Math.max(...ZONE_ORDER.map(z => LOGEMENTS[z].l));
+for (const z of ZONE_ORDER) {
+  const row = document.createElement("div");
+  row.className = "hrow";
+  row.title = `${NF.format(LOGEMENTS[z].l)} logements, dont environ ${NF.format(LOGEMENTS[z].rp)} résidences principales`;
+  row.innerHTML =
+    `<span class="code"><span class="dot" style="background:var(--${z})"></span>${z}</span>` +
+    `<span class="bar"><span style="width:${(LOGEMENTS[z].l / MAX_LOG) * 100}%;background:var(--${z})"></span></span>` +
+    `<span class="val">${NF1.format(LOGEMENTS[z].l / 1e6)} M</span>` +
+    `<span class="pct">${NF1.format((LOGEMENTS[z].l / TOTAL_LOG) * 100)} %</span>`;
+  housing.appendChild(row);
+}
+housingTotal.textContent =
+  `${NF1.format(TOTAL_LOG / 1e6)} millions de logements en métropole, ` +
+  `dont ${NF1.format(TOTAL_RP / 1e6)} millions de résidences principales.`;
+
+// ---------------------------------------------------------------------------
+// Couches : chaque interrupteur pose ou retire une classe sur la carte
+// ---------------------------------------------------------------------------
+for (const [id, cls] of Object.entries(TOGGLES)) {
+  const input = document.getElementById(id);
+  const apply = () => svg.classList.toggle(cls, input.checked);
+  input.addEventListener("change", apply);
+  apply();                             // synchronise avec l'état restauré du formulaire
+}
+
+// ---------------------------------------------------------------------------
+// Fiche département au survol / toucher
+// ---------------------------------------------------------------------------
+function showDept(path) {
+  const code = path.dataset.code;
+  const d = DEPTS[code];
+  if (activePath) activePath.classList.remove("active");
+  activePath = path;
+  path.classList.add("active");
+  path.parentNode.appendChild(path);     // premier plan pour que le contour soit visible
+  card.innerHTML =
+    `<span class="num">Département ${code}</span>` +
+    `<p class="name">${d.n}</p>` +
+    `<p class="region">${d.r}</p>` +
+    `<span class="pill" style="background:var(--${d.z})">Zone ${d.z}</span>` +
+    `<p class="stock"><b>${NF.format(d.l)}</b> logements en 2022<br>` +
+    `${NF1.format(d.rp)} % résidences principales · ${NF1.format(d.rs)} % secondaires · ${NF1.format(d.lv)} % vacants</p>`;
+}
+
+svg.querySelectorAll(".dep").forEach(p => {
+  p.addEventListener("mouseenter", () => showDept(p));
+  p.addEventListener("click", () => showDept(p));
+});
+
+// État initial : une fiche remplie plutôt qu'un panneau vide
+showDept(svg.querySelector('.dep[data-code="33"]'));
+</script>

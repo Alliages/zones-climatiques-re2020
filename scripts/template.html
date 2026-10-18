@@ -25,7 +25,7 @@ __ZONE_COLORS__
   --neigh: #d9d7d2;
   --neigh-line: #c4c1bb;
   --river: #5f93b8;
-  --relief: #6b4a2b;
+  --altitude: #6b4a2b;
   --font-display: "Bricolage Grotesque", "Avenir Next", "Segoe UI", sans-serif;
   --font-body: "Public Sans", "Helvetica Neue", Arial, sans-serif;
   --font-mono: "IBM Plex Mono", ui-monospace, Menlo, monospace;
@@ -36,7 +36,7 @@ __ZONE_COLORS__
     --line: #3a332a; --accent: #f59a4a;
     --dep-line: rgba(26, 23, 19, .45);
     --sea-deep: #18324a; --sea-mid: #234561; --sea-shallow: #33607f;
-    --neigh: #3b3832; --neigh-line: #4a463f; --river: #8cc0e3; --relief: #4a2c12;
+    --neigh: #3b3832; --neigh-line: #4a463f; --river: #8cc0e3; --altitude: #4a2c12;
     color-scheme: dark;
   }
 }
@@ -45,7 +45,7 @@ __ZONE_COLORS__
   --line: #3a332a; --accent: #f59a4a;
   --dep-line: rgba(26, 23, 19, .45);
   --sea-deep: #18324a; --sea-mid: #234561; --sea-shallow: #33607f;
-  --neigh: #3b3832; --neigh-line: #4a463f; --river: #8cc0e3; --relief: #4a2c12;
+  --neigh: #3b3832; --neigh-line: #4a463f; --river: #8cc0e3; --altitude: #4a2c12;
   color-scheme: dark;
 }
 
@@ -74,9 +74,9 @@ h1 {
 .map { min-width: 0; }
 .map svg { width: 100%; height: auto; display: block; border-radius: 14px; }
 
-/* Couches de contexte (essai) : masquées sauf si l'interrupteur est actif */
-.layer-context, .layer-relief, .layer-deplabels, .layer-cities, .layer-dhlabels { display: none; }
-svg.show-context .layer-context, svg.show-relief .layer-relief,
+/* Couches optionnelles : masquées sauf si l'interrupteur correspondant est actif */
+.layer-context, .layer-altitude, .layer-deplabels, .layer-cities, .layer-dhlabels { display: none; }
+svg.show-context .layer-context, svg.show-altitude .layer-altitude,
 svg.show-deps .layer-deplabels, svg.show-cities .layer-cities, svg.show-dhlabels .layer-dhlabels { display: inline; }
 /* Étiquettes DH médian : boîte sombre semi-transparente, texte clair (se distingue des villes) */
 .dhlabel { pointer-events: none; }
@@ -95,12 +95,8 @@ svg.show-deps .zlabel, svg.show-deps .mlabel { opacity: .28; }
 .dep:hover, .dep.active { stroke: var(--on-zone); stroke-width: 2.2; }
 .dep.enclave:not(:hover):not(.active) { stroke: none; }   /* îlot enclavé : pas de liseré au repos */
 svg[data-focus] .dep { opacity: .2; }
-svg[data-focus="H1a"] .z-H1a, svg[data-focus="H1b"] .z-H1b, svg[data-focus="H1c"] .z-H1c,
-svg[data-focus="H2a"] .z-H2a, svg[data-focus="H2b"] .z-H2b, svg[data-focus="H2c"] .z-H2c,
-svg[data-focus="H2d"] .z-H2d, svg[data-focus="H3"] .z-H3 { opacity: 1; }
-.z-H1a { fill: var(--H1a); } .z-H1b { fill: var(--H1b); } .z-H1c { fill: var(--H1c); }
-.z-H2a { fill: var(--H2a); } .z-H2b { fill: var(--H2b); } .z-H2c { fill: var(--H2c); }
-.z-H2d { fill: var(--H2d); } .z-H3 { fill: var(--H3); }
+/* Remplissage par zone et zone mise en avant (générés par build_map.py) */
+__ZONE_RULES__
 .zone-borders { fill: none; stroke: var(--zone-line); stroke-width: 1.9; stroke-linejoin: round; stroke-linecap: round; pointer-events: none; }
 .france-outline { fill: none; stroke: var(--zone-line); stroke-width: 1.4; pointer-events: none; }
 
@@ -111,14 +107,14 @@ svg[data-focus="H2d"] .z-H2d, svg[data-focus="H3"] .z-H3 { opacity: 1; }
 .rivers.second { stroke-width: .9; opacity: .6; }
 
 /* Altitude : > 400 m hachuré à 45°, > 800 m ajoute des hachures à 135° (quadrillage cumulé) */
-.alt { stroke: var(--relief); stroke-linejoin: round; pointer-events: none; }
+.alt { stroke: var(--altitude); stroke-linejoin: round; pointer-events: none; }
 .alt-400 { fill: url(#hatch45); stroke-width: 1; stroke-opacity: .7; }
 .alt-800 { fill: url(#hatch135); stroke-width: .6; stroke-opacity: .45; }
-.hatch-line { stroke: var(--relief); stroke-width: 1.3; opacity: .42; }
-.swatch-alt { width: 22px; height: 14px; border-radius: 2px; border: 1px solid var(--relief); flex: none; }
+.hatch-line { stroke: var(--altitude); stroke-width: 1.3; opacity: .42; }
+.swatch-alt { width: 22px; height: 14px; border-radius: 2px; border: 1px solid var(--altitude); flex: none; }
 .toggle small .alt-key { display: inline-flex; align-items: center; gap: 6px; margin-right: 10px; margin-top: 3px; }
 .mlabel {
-  font-family: var(--font-body); font-style: italic; font-size: 17px; fill: var(--relief);
+  font-family: var(--font-body); font-style: italic; font-size: 17px; fill: var(--altitude);
   text-anchor: middle; paint-order: stroke; stroke: var(--zone-halo); stroke-width: 4px; pointer-events: none;
 }
 
@@ -182,12 +178,14 @@ aside { display: grid; gap: 22px; min-width: 0; }
 .box > summary:hover { color: var(--ink); }
 .box > summary:focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; border-radius: 3px; }
 
+/* Pastille + code de zone (boîtes DH et Logements) */
+.hrow .code, .dhrow .code { display: flex; align-items: center; gap: 6px; }
+.hrow .dot, .dhrow .dot { width: 10px; height: 10px; border-radius: 2px; flex: none; }
+
 /* DH médians par zone : barre de la médiane + traits de référence */
 .dh { display: grid; gap: 4px; }
 .dhrow { display: grid; grid-template-columns: 40px minmax(0, 1fr) 44px 34px; align-items: center; gap: 8px; padding: 2px 8px; font-size: 13.5px; border-radius: 6px; }
 .dhrow:not(.axis):hover { background: var(--surface); }
-.dhrow .code { display: flex; align-items: center; gap: 6px; }
-.dhrow .dot { width: 10px; height: 10px; border-radius: 2px; flex: none; }
 .dhrow .dhtrack { position: relative; height: 12px; }
 .dhrow .base, .dhrow .fill { position: absolute; left: 0; top: 3px; height: 6px; border-radius: 3px; }
 .dhrow .base { right: 0; background: var(--line); }
@@ -202,8 +200,6 @@ aside { display: grid; gap: 22px; min-width: 0; }
 /* Logements par zone */
 .housing { display: grid; gap: 4px; }
 .hrow { display: grid; grid-template-columns: 44px 1fr 58px 44px; align-items: center; gap: 8px; padding: 2px 8px; font-size: 13.5px; }
-.hrow .code { display: flex; align-items: center; gap: 6px; }
-.hrow .dot { width: 10px; height: 10px; border-radius: 2px; flex: none; }
 .hrow .val, .hrow .pct { font-variant-numeric: tabular-nums; text-align: right; }
 .hrow .pct { color: var(--muted); font-size: 12.5px; }
 .housing-total { margin: 8px 8px 0; font-size: 12.5px; color: var(--muted); line-height: 1.4; }
@@ -246,14 +242,14 @@ footer a { color: var(--accent); }
 
 <div class="wrap">
   <header>
-    <span class="eyebrow">RE2020 · France métropolitaine · 96 départements</span>
+    <span class="eyebrow">RE2020 · France métropolitaine · __NB_DEPTS__ départements</span>
     <h1>Zones climatiques RE2020</h1>
     <p class="lede">Chaque département est rattaché à l'une des huit zones climatiques, de H1a au nord à H3 sur le littoral méditerranéen. Survolez un département pour sa fiche, cliquez une zone de la légende pour l'isoler.</p>
   </header>
 
   <div class="layout">
     <div class="map">
-      <svg id="map" class="show-context show-relief show-cities" viewBox="__VIEWBOX__" role="img" aria-label="Carte des zones climatiques RE2020 par département">
+      <svg id="map" class="show-context show-altitude show-cities" viewBox="__VIEWBOX__" role="img" aria-label="Carte des zones climatiques RE2020 par département">
         <defs>
           <linearGradient id="sea" x1="0" y1="0" x2="1" y2="1">
             <stop offset="0" style="stop-color: var(--sea-deep)"/>
@@ -270,7 +266,7 @@ footer a { color: var(--accent); }
           </pattern>
         </defs>
 
-        <!-- Essai : mers en dégradé + halo côtier + pays voisins -->
+        <!-- Mers en dégradé + halo côtier + pays voisins -->
         <g class="layer-context">
           <rect width="__VW__" height="__VH__" fill="url(#sea)"/>
           <path class="coast-halo" d="__LAND__"/>
@@ -292,7 +288,7 @@ __PATHS__
         </g>
 
         <!-- Altitude (classes RE2020, MNT) : surfaces emboîtées > 400 m puis > 800 m -->
-        <g class="layer-relief">
+        <g class="layer-altitude">
 __ALTITUDE__
         </g>
 
@@ -303,7 +299,7 @@ __CONTEXT__
         <g id="zone-labels">
 __ZONELABELS__
         </g>
-        <g class="layer-relief">
+        <g class="layer-altitude">
 __MASSIF_LABELS__
         </g>
         <g class="layer-deplabels">
@@ -347,9 +343,9 @@ __DHLABELS__
             <input type="checkbox" id="t-context" checked>
             <span class="track"></span>
           </label>
-          <label class="toggle" for="t-relief">
+          <label class="toggle" for="t-altitude">
             <span>Altitude<small><span class="alt-key"><svg class="swatch-alt" viewBox="0 0 22 14" aria-hidden="true"><rect width="22" height="14" fill="url(#hatch45)"/></svg>400 – 800 m</span><span class="alt-key"><svg class="swatch-alt" viewBox="0 0 22 14" aria-hidden="true"><rect width="22" height="14" fill="url(#hatch45)"/><rect width="22" height="14" fill="url(#hatch135)"/></svg>&gt; 800 m</span></small></span>
-            <input type="checkbox" id="t-relief" checked>
+            <input type="checkbox" id="t-altitude" checked>
             <span class="track"></span>
           </label>
         </div>
@@ -377,7 +373,7 @@ __DHLABELS__
   <footer>
     <p>Zones issues du tableau fourni, découpage départemental. Logements : Insee, recensement de la population 2022 (résidences principales, secondaires, occasionnelles et logements vacants). Fleuves, lacs, pays voisins et noms des massifs : Natural Earth.</p>
     <p>Altitude : modèle numérique de terrain (~90 m) agrégé à ~500 m, classes 400–800 m et &gt; 800 m, îlots et creux de moins de 70 km² retirés, contour simplifié à ~1 km. Représentation indicative : la classe d'altitude RE2020 d'un projet se détermine à l'altitude réelle du terrain.</p>
-    <p>DH (degrés-heures d'inconfort estival) : médiane par zone d'une sélection de logements collectifs conformes de l'open data OPEE (RE2020), extraction du __DH_DATE__. Traits de référence à 350 °C.h et 1 250 °C.h. Les couleurs des zones vont du plus clair au plus foncé selon leur DH médian.</p>
+    <p>DH (degrés-heures d'inconfort estival) : médiane par zone d'une sélection de logements collectifs conformes de l'open data OPEE (RE2020), extraction du __DH_DATE__. Traits de référence à __DH_REFS_TEXTE__. Les couleurs des zones vont du plus clair au plus foncé selon leur DH médian.</p>
     <p class="version">Version __VERSION__ · générée le __BUILD_DATE__ · <a href="__REPO_URL__">code source et historique des versions</a></p>
   </footer>
 </div>
@@ -390,21 +386,15 @@ const DEPTS = __DATA__;            // code → { r: région, n: nom, z: zone }
 const COUNTS = __COUNTS__;         // zone → nombre de départements
 const LOGEMENTS = __LOGEMENTS__;   // zone → { l: logements, rp: résidences principales }
 const DH = __DH__;                 // { zones: { zone → { m: médiane °C.h, n: nb bâtiments } }, all: { m, n } }
-const DH_REFS = __DH_REFS__;       // traits de référence (°C.h)
+const DH_REFS = __DH_REFS__;       // traits de référence : [{ v: °C.h, court, info }]
 const DH_SCALE = __DH_SCALE__;     // borne de l'échelle des barres DH (°C.h)
-const DH_REF_INFO = {              // infobulles des traits de référence
-  350: "350 °C.h : au-delà, pénalité forfaitaire de climatisation dans le Cep",
-  1250: "1 250 °C.h : DH max courant (seuil de conformité)",
-};
 const BOX_STORE_KEY = "zones-re2020:boites";   // mémorisation par visiteur des boîtes pliées
-const ZONE_ORDER = ["H1a", "H1b", "H1c", "H2a", "H2b", "H2c", "H2d", "H3"];
+const ZONE_ORDER = __ZONES__;      // zones dans l'ordre réglementaire (source : build_map.py)
 const NF = new Intl.NumberFormat("fr-FR");
 const NF1 = new Intl.NumberFormat("fr-FR", { minimumFractionDigits: 1, maximumFractionDigits: 1 });
-const GROUPS = [
-  ["Zone H1", ["H1a", "H1b", "H1c"]],
-  ["Zone H2", ["H2a", "H2b", "H2c", "H2d"]],
-  ["Zone H3", ["H3"]],
-];
+// Groupes de la légende (H1, H2, H3), déduits des noms de zones
+const GROUPS = [...new Set(ZONE_ORDER.map(z => z.slice(0, 2)))]
+  .map(g => ["Zone " + g, ZONE_ORDER.filter(z => z.startsWith(g))]);
 const MAX_COUNT = Math.max(...Object.values(COUNTS));
 const svg = document.getElementById("map");
 const card = document.getElementById("card");
@@ -414,11 +404,28 @@ const housingTotal = document.getElementById("housing-total");
 const dhBox = document.getElementById("dh");
 const dhTotal = document.getElementById("dh-total");
 // Interrupteur → classe CSS posée sur la carte
-const TOGGLES = { "t-context": "show-context", "t-relief": "show-relief",
+const TOGGLES = { "t-context": "show-context", "t-altitude": "show-altitude",
                   "t-cities": "show-cities", "t-deps": "show-deps",
                   "t-dhmap": "show-dhlabels" };
 let lockedZone = null;            // zone isolée par clic dans la légende
 let activePath = null;            // département mis en avant
+
+// ---------------------------------------------------------------------------
+// Outils communs
+// ---------------------------------------------------------------------------
+function setFocus(zone) {
+  if (zone) svg.setAttribute("data-focus", zone);
+  else svg.removeAttribute("data-focus");
+}
+// Survol d'un élément de la colonne : met la zone en avant sur la carte (sauf zone verrouillée)
+function bindZoneHover(el, zone) {
+  el.addEventListener("mouseenter", () => { if (!lockedZone) setFocus(zone); });
+  el.addEventListener("mouseleave", () => { if (!lockedZone) setFocus(null); });
+}
+// Pastille de couleur + code de la zone
+const zoneCode = z => `<span class="code"><span class="dot" style="background:var(--${z})"></span>${z}</span>`;
+// Barre proportionnelle à la couleur de la zone
+const zoneBar = (z, pct) => `<span class="bar"><span style="width:${pct}%;background:var(--${z})"></span></span>`;
 
 // ---------------------------------------------------------------------------
 // Légende : un bouton par zone, barre proportionnelle au nombre de départements
@@ -437,10 +444,9 @@ for (const [label, zones] of GROUPS) {
     b.innerHTML =
       `<span class="swatch" style="background:var(--${z})"></span>` +
       `<span class="code">${z}</span>` +
-      `<span class="bar"><span style="width:${(COUNTS[z] / MAX_COUNT) * 100}%;background:var(--${z})"></span></span>` +
+      zoneBar(z, (COUNTS[z] / MAX_COUNT) * 100) +
       `<span class="count">${COUNTS[z]}</span>`;
-    b.addEventListener("mouseenter", () => { if (!lockedZone) setFocus(z); });
-    b.addEventListener("mouseleave", () => { if (!lockedZone) setFocus(null); });
+    bindZoneHover(b, z);
     b.addEventListener("click", () => {
       lockedZone = lockedZone === z ? null : z;
       legend.querySelectorAll(".zone").forEach(el =>
@@ -450,11 +456,6 @@ for (const [label, zones] of GROUPS) {
     g.appendChild(b);
   }
   legend.appendChild(g);
-}
-
-function setFocus(zone) {
-  if (zone) svg.setAttribute("data-focus", zone);
-  else svg.removeAttribute("data-focus");
 }
 
 // ---------------------------------------------------------------------------
@@ -468,8 +469,7 @@ for (const z of ZONE_ORDER) {
   row.className = "hrow";
   row.title = `${NF.format(LOGEMENTS[z].l)} logements, dont environ ${NF.format(LOGEMENTS[z].rp)} résidences principales`;
   row.innerHTML =
-    `<span class="code"><span class="dot" style="background:var(--${z})"></span>${z}</span>` +
-    `<span class="bar"><span style="width:${(LOGEMENTS[z].l / MAX_LOG) * 100}%;background:var(--${z})"></span></span>` +
+    zoneCode(z) + zoneBar(z, (LOGEMENTS[z].l / MAX_LOG) * 100) +
     `<span class="val">${NF1.format(LOGEMENTS[z].l / 1e6)} M</span>` +
     `<span class="pct">${NF1.format((LOGEMENTS[z].l / TOTAL_LOG) * 100)} %</span>`;
   housing.appendChild(row);
@@ -482,35 +482,34 @@ housingTotal.textContent =
 // DH médians par zone : barre de la médiane sur une échelle commune + traits de référence
 // ---------------------------------------------------------------------------
 const pos = v => `${(v / DH_SCALE) * 100}%`;
+const REF_MAX = Math.max(...DH_REFS.map(r => r.v));      // trait plein pour le seuil le plus haut
 const refsHtml = DH_REFS.map(r =>
-  `<span class="ref${r === Math.max(...DH_REFS) ? " max" : ""}" style="left:${pos(r)}" title="${DH_REF_INFO[r] || r + " °C.h"}"></span>`).join("");
+  `<span class="ref${r.v === REF_MAX ? " max" : ""}" style="left:${pos(r.v)}" title="${NF.format(r.v)} °C.h : ${r.info}"></span>`).join("");
 // Ligne d'axe : valeurs des traits de référence
 const axis = document.createElement("div");
 axis.className = "dhrow axis";
 axis.innerHTML = `<span></span><span class="dhtrack">${DH_REFS.map(r =>
-  `<span class="tick" style="left:${pos(r)}">${NF.format(r)}</span>`).join("")}</span><span class="val">°C.h</span><span class="nb">bât.</span>`;
+  `<span class="tick" style="left:${pos(r.v)}">${NF.format(r.v)}</span>`).join("")}</span><span class="val">°C.h</span><span class="nb">bât.</span>`;
 dhBox.appendChild(axis);
 // Lignes triées par DH médian croissant (même ordre que les couleurs des zones)
 const DH_ORDER = Object.keys(DH.zones).sort((a, b) => DH.zones[a].m - DH.zones[b].m);
 for (const z of DH_ORDER) {
   const d = DH.zones[z];
-  if (!d) continue;
   const row = document.createElement("div");
   row.className = "dhrow";
   row.title = `${z} : DH médian ${NF.format(d.m)} °C.h sur ${NF.format(d.n)} bâtiments conformes`;
   row.innerHTML =
-    `<span class="code"><span class="dot" style="background:var(--${z})"></span>${z}</span>` +
+    zoneCode(z) +
     `<span class="dhtrack"><span class="base"></span><span class="fill" style="width:${pos(Math.min(d.m, DH_SCALE))};background:var(--${z})"></span>${refsHtml}</span>` +
     `<span class="val">${NF.format(d.m)}</span>` +
     `<span class="nb">${NF.format(d.n)}</span>`;
-  row.addEventListener("mouseenter", () => { if (!lockedZone) setFocus(z); });
-  row.addEventListener("mouseleave", () => { if (!lockedZone) setFocus(null); });
+  bindZoneHover(row, z);
   dhBox.appendChild(row);
 }
 if (DH.all) {
   dhTotal.textContent = `Sélection de logements collectifs (bâtiments conformes). ` +
     `Toutes zones : médiane ${NF.format(DH.all.m)} °C.h sur ${NF.format(DH.all.n)} bâtiments. ` +
-    `Traits : 350 °C.h (pénalité dans le Cep au-delà) et 1 250 °C.h (DH max). ` +
+    `Traits : ${DH_REFS.map(r => `${NF.format(r.v)} °C.h (${r.court})`).join(" et ")}. ` +
     `Les couleurs des zones suivent l'ordre des DH médians.`;
 }
 

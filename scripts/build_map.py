@@ -1,22 +1,27 @@
-"""Carte des zones climatiques RE2020.
+"""Génère la carte des zones climatiques RE2020 (index.html).
 
-Couches : mers en dégradé, pays voisins, départements, limites de zones,
-lacs, fleuves, altitude (classes RE2020 > 400 m et > 800 m), libellés (zones, villes, départements, pays, mers),
-nombre de logements (INSEE, RP 2022) par département et par zone,
-DH médians par zone (open data OPEE).
+Couches : mers en dégradé, pays voisins, départements, limites de zones, lacs,
+fleuves, altitude (classes RE2020 > 400 m et > 800 m), libellés (zones, villes,
+départements, pays, mers, massifs), DH médian par zone sur la carte.
+Colonne : fiche département, couches, zones, DH médians (open data OPEE),
+logements par zone (INSEE, RP 2022).
 
-Usage :
-  python3 -I build_map.py <dossier_geo> <zones.txt> <template.html> <sortie_artifact.html>
-                          <logements.txt> <sortie_index.html>
+Usage (depuis la racine du dépôt) :
+  python3 scripts/build_map.py                     # écrit index.html
+  python3 scripts/build_map.py --apercu apercu.html  # + fragment pour l'aperçu Claude
 """
+import argparse
 import datetime
 import json
-import math
 import os
 import sys
 
-from shapely.geometry import shape, box, mapping, Polygon
-from shapely.ops import unary_union, polylabel
+from shapely.geometry import Polygon, box, shape
+from shapely.ops import unary_union
+
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+from geo_utils import (Projection, fusionner, lire_json, lire_table, parties,   # noqa: E402
+                       plus_grande_partie)
 
 # ---------------------------------------------------------------------------
 # Paramètres (regroupés en tête pour la lisibilité)
@@ -24,31 +29,54 @@ from shapely.ops import unary_union, polylabel
 VERSION = "1.1.2"             # version de la carte (SemVer) — à reporter dans CHANGELOG.md et en tag git
 BUILD_DATE = datetime.date.today().strftime("%d/%m/%Y")   # date de génération affichée en pied de page
 REPO_URL = "https://github.com/Alliages/zones-climatiques-re2020"
+
+# Fichiers (chemins relatifs à la racine du dépôt)
+RACINE = os.path.normpath(os.path.join(os.path.dirname(os.path.abspath(__file__)), ".."))
+FONDS_DIR = os.path.join(RACINE, "data", "fonds")                  # préparés par preparer_fonds.py
+ZONES_PATH = os.path.join(RACINE, "data", "zones_departements.txt")
+LOGEMENTS_PATH = os.path.join(RACINE, "data", "logements_insee_2022.txt")
+REPERES_PATH = os.path.join(RACINE, "data", "reperes.json")       # villes, pays et mers, fleuves, massifs
+ALTITUDE_PATH = os.path.join(RACINE, "data", "altitude_re2020.geojson")
+DH_PATH = os.path.join(RACINE, "data", "dh_median_opee.csv")
+TEMPLATE_PATH = os.path.join(RACINE, "scripts", "template.html")
+INDEX_PATH = os.path.join(RACINE, "index.html")
 # Icônes de l'onglet (fichiers à la racine du dépôt, à côté de index.html)
 FAVICON_SVG = "favicon.svg"             # navigateurs récents
 FAVICON_PNG = "favicon-32.png"          # repli pour les navigateurs sans prise en charge du SVG
 APPLE_TOUCH_ICON = "apple-touch-icon.png"   # écran d'accueil iPhone / iPad (180 × 180 px)
-GEO_DIR, TABLE_PATH, TEMPLATE_PATH, OUT_PATH, LOGEMENTS_PATH, INDEX_PATH = sys.argv[1:7]
-DEP_LABEL_CODES_ONLY = {"75", "92", "93", "94", "90"}   # départements trop petits : numéro seul
-DEP_LABEL_MAXLEN = 11                                   # au-delà, le nom passe sur deux lignes
+
+# Zones climatiques, dans l'ordre réglementaire (source unique : injectée dans la page)
+ZONES = ["H1a", "H1b", "H1c", "H2a", "H2b", "H2c", "H2d", "H3"]
+# Palette des zones, du plus clair au plus foncé : attribuée aux zones par DH médian croissant
+PALETTE_ZONES = ["#fbdf72", "#f9cf52", "#f6bd3a", "#f4a930", "#f09528", "#e88021", "#da691a", "#c25212"]
+
+# Cadrage et simplification
 VIEW_W = 1000                 # largeur du viewBox SVG
 LAT0 = 46.5                   # latitude de référence de la projection
 PAD = 42                      # marge autour de la France (place pour mers et voisins)
-SIMPLIFY_DEG = 0.004          # simplification des couches de contexte (degrés)
+MARGE_CONTEXTE_DEG = 0.3      # débord des couches de contexte au-delà du viewBox
+SIMPLIFY_DEG = 0.004          # simplification des pays voisins (degrés)
+SIMPLIFY_FLEUVES_DEG = 0.002  # simplification des fleuves (degrés)
+LAC_SURFACE_MIN = 0.005       # lacs plus petits ignorés (degrés²)
+FLEUVES_MARGE_DEG = 0.03      # fleuves découpés à la France légèrement élargie (garde le Rhin frontalier)
 
-ZONES = ["H1a", "H1b", "H1c", "H2a", "H2b", "H2c", "H2d", "H3"]
+# Étiquettes
+DEP_LABEL_CODES_ONLY = {"75", "92", "93", "94", "90"}   # départements trop petits : numéro seul
+DEP_LABEL_MAXLEN = 11                                   # au-delà, le nom passe sur deux lignes
+# Décalages manuels des étiquettes de zones (unités du viewBox)
+ZONE_LABEL_NUDGE = {"H2a": (35, 22), "H2b": (-40, 40), "H2c": (-55, 20),
+                    "H1b": (-70, -15), "H3": (-10, -6), "H2d": (-35, 35)}
 
 # Altitude : classes RE2020 issues du MNT (voir scripts/altitude/), deux surfaces emboîtées
-ALTITUDE_PATH = os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "data", "altitude_re2020.geojson")
 ALTITUDE_CLASSES = ["400+", "800+"]     # « 400+ » : hachures 45° ; « 800+ » : + hachures 135° (quadrillage)
 
 # Degrés-heures (DH) médians par zone : open data OPEE (bâtiments conformes), synthèse fournie par Guigui
-REPERES_PATH = os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "data", "reperes.json")
-# Repères (villes, pays et mers, fleuves, massifs) : voir data/reperes.json
-
-DH_PATH = os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "data", "dh_median_opee.csv")
 DH_EXTRACTION = "18/10/2026"            # date d'extraction OPEE affichée dans la note de source
-DH_REFS = [350, 1250]                   # traits de référence (°C.h) : seuil bas et DH max courant
+DH_REFS = [                             # traits de référence (°C.h), repris dans la boîte DH et le pied de page
+    {"v": 350, "court": "pénalité dans le Cep au-delà",
+     "info": "au-delà, pénalité forfaitaire de climatisation dans le Cep"},
+    {"v": 1250, "court": "DH max", "info": "DH max courant (seuil de conformité)"},
+]
 DH_SCALE_MAX = 1300                     # borne de l'échelle des barres (°C.h)
 # Étiquettes « DH médian » sur la carte (couche optionnelle) : boîte arrondie semi-transparente
 DH_LABEL_FONT = 14                      # taille du texte (unités du viewBox)
@@ -56,243 +84,38 @@ DH_LABEL_CHAR_W = 0.6                   # largeur d'un caractère en police mono
 DH_LABEL_PAD_X, DH_LABEL_H, DH_LABEL_RX = 8, 22, 7
 DH_LABEL_DY = 30                        # position sous le nom de zone (centre de la boîte)
 DH_LABEL_DY_SPECIAL = {"H2d": -29, "H3": -34}   # au-dessus du nom : évite Avignon et Perpignan
-# Palette des zones, du plus clair au plus foncé : attribuée aux zones par DH médian croissant
-PALETTE_ZONES = ["#fbdf72", "#f9cf52", "#f6bd3a", "#f4a930", "#f09528", "#e88021", "#da691a", "#c25212"]
 
-# Décalages manuels des étiquettes de zones (pixels du viewBox), si besoin
-ZONE_LABEL_NUDGE = {"H2a": (35, 22), "H2b": (-40, 40), "H2c": (-55, 20),
-                    "H1b": (-70, -15), "H3": (-10, -6), "H2d": (-35, 35)}
 
 # ---------------------------------------------------------------------------
-# Chargement des données
+# Lecture des données
 # ---------------------------------------------------------------------------
-def load(name):
-    """Lit un fond de carte de data/fonds/ (préparé par preparer_fonds.py)."""
-    with open(f"{GEO_DIR}/{name}.geojson", encoding="utf-8") as f:
-        return json.load(f)
+def fond(nom):
+    """Fond de carte de data/fonds/ (préparé par preparer_fonds.py)."""
+    return lire_json(os.path.join(FONDS_DIR, f"{nom}.geojson"))
 
-def load_path(path):
-    with open(path, encoding="utf-8") as f:
-        return json.load(f)
 
-def lire_table(path):
-    """Lit un fichier texte à séparateur « | » et ligne d'en-tête → liste de dictionnaires."""
-    with open(path, encoding="utf-8") as f:
-        lignes = f.read().strip().splitlines()
-    cles = lignes[0].split("|")
-    return [dict(zip(cles, l.split("|"))) for l in lignes[1:]]
+def lire_departements():
+    """code → {r: région, n: nom, z: zone, l: logements, rp / rs / lv: % RP, secondaires, vacants}."""
+    data = {d["code"]: {"r": d["region"], "n": d["nom"], "z": d["zone"]} for d in lire_table(ZONES_PATH)}
+    for d in lire_table(LOGEMENTS_PATH):          # jointure par code ; le nom sert de contrôle
+        if data.get(d["code"], {}).get("n") != d["nom"]:
+            sys.exit(f"Logements : département {d['code']} {d['nom']} absent ou nommé autrement")
+        data[d["code"]].update({"l": int(d["logements"]), "rp": float(d["pct_residences_principales"]),
+                                "rs": float(d["pct_residences_secondaires"]), "lv": float(d["pct_vacants"])})
+    manquants = [c for c, v in data.items() if "l" not in v or v["z"] not in ZONES]
+    if manquants:
+        sys.exit(f"Logements ou zone manquants ou inconnus pour : {manquants}")
+    return data
 
-with open(REPERES_PATH, encoding="utf-8") as f:
-    reperes = json.load(f)
-deps_geo = load("departements")
-data = {d["code"]: {"r": d["region"], "n": d["nom"], "z": d["zone"]} for d in lire_table(TABLE_PATH)}
 
-# Logements INSEE (RP 2022), jointure par code ; le nom sert de contrôle
-for d in lire_table(LOGEMENTS_PATH):
-    assert data[d["code"]]["n"] == d["nom"], f"Nom différent pour le département {d['code']}"
-    data[d["code"]].update({"l": int(d["logements"]), "rp": float(d["pct_residences_principales"]),
-                            "rs": float(d["pct_residences_secondaires"]), "lv": float(d["pct_vacants"])})
-assert all("l" in v for v in data.values()), "Logements manquants pour un département"
-
-dep_shapes = {f["properties"]["code"]: shape(f["geometry"]).buffer(0) for f in deps_geo["features"]}
-france = unary_union([g.buffer(0.002) for g in dep_shapes.values()]).buffer(-0.002)
-
-# ---------------------------------------------------------------------------
-# Projection (équirectangulaire corrigée en latitude) et cadrage
-# ---------------------------------------------------------------------------
-COSLAT = math.cos(math.radians(LAT0))
-fminx, fminy, fmaxx, fmaxy = france.bounds
-scale = (VIEW_W - 2 * PAD) / ((fmaxx - fminx) * COSLAT)
-VIEW_H = round((fmaxy - fminy) * scale + 2 * PAD)
-
-def proj(lon, lat):
-    return ((lon - fminx) * COSLAT * scale + PAD, (fmaxy - lat) * scale + PAD)
-
-# Emprise du viewBox en degrés (pour découper les couches de contexte)
-view_lon0 = fminx - PAD / (scale * COSLAT)
-view_lon1 = fminx + (VIEW_W - PAD) / (scale * COSLAT)
-view_lat1 = fmaxy + PAD / scale
-view_lat0 = fmaxy - (VIEW_H - PAD) / scale
-VIEW_BOX_DEG = box(view_lon0 - 0.3, view_lat0 - 0.3, view_lon1 + 0.3, view_lat1 + 0.3)
-
-def ring_d(coords, close=True):
-    pts = [proj(x, y) for x, y in coords]
-    return "M" + "L".join(f"{x:.1f},{y:.1f}" for x, y in pts) + ("Z" if close else "")
-
-def geom_d(g):
-    """Chemin SVG pour un polygone, multipolygone, ligne ou multiligne."""
-    if g.is_empty:
-        return ""
-    t = g.geom_type
-    if t == "Polygon":
-        return ring_d(g.exterior.coords) + "".join(ring_d(i.coords) for i in g.interiors)
-    if t in ("MultiPolygon", "GeometryCollection", "MultiLineString"):
-        return "".join(geom_d(p) for p in g.geoms)
-    if t == "LineString":
-        return ring_d(g.coords, close=False)
-    return ""
-
-def boundary_d(g):
-    """Contour (lignes) d'une surface."""
-    return geom_d(g.boundary)
-
-# ---------------------------------------------------------------------------
-# Couches
-# ---------------------------------------------------------------------------
-# 1. Départements
-# Les enclaves (ex. Enclave des Papes : îlot du Vaucluse entouré par la Drôme) sont
-# détectées automatiquement : le département hôte est dessiné sans son trou, et
-# l'îlot est posé par-dessus dans un chemin à part, sans liseré (classe « enclave »).
-def polygon_parts(g):
-    return list(g.geoms) if g.geom_type == "MultiPolygon" else [g]
-
-hosts = {c: Polygon(max(polygon_parts(g), key=lambda p: p.area).exterior)
-         for c, g in dep_shapes.items()}
-enclaves = []                      # (code de l'enclave, polygone)
-host_codes = set()                 # départements qui contiennent une enclave
-for c, g in dep_shapes.items():
-    for part in polygon_parts(g):
-        for h, hull in hosts.items():
-            if h != c and hull.contains(part.representative_point()) and hull.area > part.area:
-                enclaves.append((c, part))
-                host_codes.add(h)
-                break
-
-def dep_geom_for_drawing(c, g):
-    """Géométrie dessinée : sans les îlots enclavés, et sans trou pour un hôte."""
-    parts = [p for p in polygon_parts(g) if not any(e.equals(p) for _, e in enclaves)]
-    if c in host_codes:
-        parts = [Polygon(p.exterior) for p in parts]
-    return unary_union(parts)
-
-dep_paths = "\n".join(
-    [f'<path class="dep z-{data[c]["z"]}" data-code="{c}" d="{geom_d(dep_geom_for_drawing(c, g))}"/>'
-     for c, g in dep_shapes.items()]
-    + [f'<path class="dep enclave z-{data[c]["z"]}" data-code="{c}" d="{geom_d(p)}"/>'
-       for c, p in enclaves])
-print("Enclaves détectées :", [(c, round(p.area, 4)) for c, p in enclaves], "hôtes :", sorted(host_codes))
-
-# 2. Zones fusionnées : contours épais + position des étiquettes
-zone_union = {}
-for z in ZONES:
-    parts = [dep_shapes[c].buffer(0.002) for c in data if data[c]["z"] == z]
-    zone_union[z] = unary_union(parts).buffer(-0.002)
-
-# Limites entre zones uniquement (pas le trait de côte) : intersection des contours
-zone_lines = []
-for i, a in enumerate(ZONES):
-    for b in ZONES[i + 1:]:
-        shared = zone_union[a].buffer(0.004).intersection(zone_union[b].boundary)
-        if not shared.is_empty:
-            zone_lines.append(geom_d(shared))
-zone_border_d = "".join(zone_lines)
-
-zone_labels = []
-zone_pos = {}                           # position finale du nom de chaque zone (réutilisée pour le DH)
-for z in ZONES:
-    g = zone_union[z]
-    biggest = max(g.geoms, key=lambda p: p.area) if g.geom_type == "MultiPolygon" else g
-    pt = polylabel(biggest, tolerance=0.01)
-    x, y = proj(pt.x, pt.y)
-    dx, dy = ZONE_LABEL_NUDGE.get(z, (0, 0))
-    zone_labels.append(f'<text class="zlabel" x="{x + dx:.1f}" y="{y + dy:.1f}">{z}</text>')
-    zone_pos[z] = (x + dx, y + dy)
-
-# 3. Pays voisins (gris) et masse terrestre pour le halo côtier
-countries = load("pays")
-land_parts, neigh_parts = [], []
-for f in countries["features"]:
-    g = shape(f["geometry"]).buffer(0)
-    if not g.intersects(VIEW_BOX_DEG):
-        continue
-    g = g.intersection(VIEW_BOX_DEG).simplify(SIMPLIFY_DEG)
-    land_parts.append(g)
-    if f["properties"].get("ADMIN") != "France":
-        neigh_parts.append(g)
-land_parts.append(france)
-land_d = geom_d(unary_union(land_parts))
-neigh_d = geom_d(unary_union(neigh_parts))
-
-# 4. Lacs (Léman notamment)
-lakes = load("lacs")
-lake_d = "".join(
-    geom_d(shape(f["geometry"]).buffer(0).intersection(VIEW_BOX_DEG))
-    for f in lakes["features"]
-    if shape(f["geometry"]).intersects(VIEW_BOX_DEG) and shape(f["geometry"]).area > 0.005)
-
-# 5. Fleuves (découpés à la France légèrement élargie pour garder le Rhin frontalier)
-france_buf = france.buffer(0.03)
-rivers = {"main": [], "second": []}
-for f in load("fleuves")["features"]:
-    name = f["properties"].get("name")
-    cls = "main" if name in reperes["fleuves"]["principaux"] else "second"
-    g = shape(f["geometry"])
-    if g.intersects(france_buf):
-        rivers[cls].append(geom_d(g.intersection(france_buf).simplify(0.002)))
-
-# 6. Altitude (classes RE2020 > 400 m et > 800 m) + noms des massifs comme repères
-alt_geo = load_path(ALTITUDE_PATH)
-alt_geoms = {f["properties"]["classe"]: shape(f["geometry"]) for f in alt_geo["features"]}
-altitude_paths = [f'<path class="alt alt-{c[:3]}" d="{geom_d(alt_geoms[c])}"/>' for c in ALTITUDE_CLASSES]
-
-regions = load("massifs")
-massif_labels = []
-for f in regions["features"]:
-    nm = f["properties"].get("NAME")
-    g = shape(f["geometry"]).buffer(0).intersection(france)
-    if g.is_empty:
-        continue
-    biggest = max(g.geoms, key=lambda p: p.area) if g.geom_type == "MultiPolygon" else g
-    pt = polylabel(biggest, tolerance=0.01)
-    x, y = proj(pt.x, pt.y)
-    massif_labels.append(f'<text class="mlabel" x="{x:.1f}" y="{y:.1f}">{reperes["massifs"][nm]}</text>')
-
-# 7. Villes
-city_svg = []
-for v in reperes["villes"]:
-    name, pos = v["nom"], v["position"]
-    x, y = proj(v["lon"], v["lat"])
-    if pos == "below":
-        tx, ty, ta = x, y + 24, "middle"
-    else:
-        tx, ty, ta = x + (9 if pos == "start" else -9), y + 6, pos
-    city_svg.append(f'<g class="city"><circle cx="{x:.1f}" cy="{y:.1f}" r="4.2"/>'
-                    f'<text x="{tx:.1f}" y="{ty:.1f}" text-anchor="{ta}">{name}</text></g>')
-
-# 8. Pays et mers
-context_svg = []
-for lib in reperes["libelles"]:
-    txt, cls = lib["texte"], lib["type"]
-    x, y = proj(lib["lon"], lib["lat"])
-    context_svg.append(f'<text class="ctx {cls}" x="{x:.1f}" y="{y:.1f}">{txt}</text>')
-
-# 9. Noms des départements (couche masquée par défaut)
-def split_name(name):
-    """Coupe un nom long au trait d'union le plus proche du milieu."""
-    if len(name) <= DEP_LABEL_MAXLEN or "-" not in name:
-        return [name]
-    cuts = [i for i, ch in enumerate(name) if ch == "-"]
-    i = min(cuts, key=lambda k: abs(k - len(name) / 2))
-    return [name[: i + 1], name[i + 1:]]
-
-dep_labels = []
-for code, g in dep_shapes.items():
-    biggest = max(g.geoms, key=lambda p: p.area) if g.geom_type == "MultiPolygon" else g
-    pt = polylabel(biggest, tolerance=0.005)
-    x, y = proj(pt.x, pt.y)
-    if code in DEP_LABEL_CODES_ONLY:
-        dep_labels.append(f'<text class="dlabel code" x="{x:.1f}" y="{y + 3:.1f}">{code}</text>')
-        continue
-    lines = split_name(data[code]["n"])
-    y0 = y + 4 - (len(lines) - 1) * 6
-    spans = "".join(f'<tspan x="{x:.1f}" y="{y0 + k * 12:.1f}">{t}</tspan>' for k, t in enumerate(lines))
-    dep_labels.append(f'<text class="dlabel">{spans}</text>')
-
-# 10. DH médians par zone (CSV « ; » à virgule décimale, encodé UTF-8 avec BOM)
 def lire_dh(path):
-    """Retourne {zone: {m: médiane, n: nb bâtiments}} et la ligne « Toutes zones »."""
+    """DH par zone (CSV « ; » à virgule décimale, UTF-8 avec BOM, export OPEE).
+
+    Retourne {zones: {zone: {m: médiane, n: nb bâtiments}}, all: ligne « Toutes zones »}.
+    """
     zones, total = {}, None
-    lignes = open(path, encoding="utf-8-sig").read().strip().splitlines()
+    with open(path, encoding="utf-8-sig") as f:
+        lignes = f.read().strip().splitlines()
     for ligne in lignes[1:]:
         zone, nb, med = ligne.split(";")[:3]
         val = {"m": round(float(med.replace(",", "."))), "n": int(nb)}
@@ -300,73 +123,267 @@ def lire_dh(path):
             zones[zone] = val
         else:
             total = val
+    if sorted(zones) != sorted(ZONES):
+        sys.exit(f"DH manquant pour : {sorted(set(ZONES) - set(zones))}")
     return {"zones": zones, "all": total}
 
-dh = lire_dh(DH_PATH)
 
-# Couleurs des zones dans l'ordre du DH médian (la plus claire pour le DH le plus bas)
-ordre_dh = sorted(dh["zones"], key=lambda z: dh["zones"][z]["m"])
-assert sorted(ordre_dh) == sorted(ZONES), "DH manquant pour une zone"
-zone_colors_css = "\n".join(f"  --{z}: {PALETTE_ZONES[i]};" for i, z in enumerate(ordre_dh))
-print("Ordre DH :", " < ".join(ordre_dh))
+# ---------------------------------------------------------------------------
+# Couches
+# ---------------------------------------------------------------------------
+def couche_departements(proj, dep_shapes, data):
+    """Un chemin par département, coloré par zone.
 
-# Étiquettes DH médian : boîte arrondie + texte, centrées sous (ou sur) le nom de zone
+    Les enclaves (ex. Enclave des Papes : îlot du Vaucluse entouré par la Drôme) sont
+    détectées automatiquement : le département hôte est dessiné sans son trou, et
+    l'îlot est posé par-dessus dans un chemin à part, sans liseré (classe « enclave »).
+    """
+    contours = {c: Polygon(plus_grande_partie(g).exterior) for c, g in dep_shapes.items()}
+    enclaves, hotes = [], set()                # (code de l'enclave, polygone), départements hôtes
+    for c, g in dep_shapes.items():
+        for part in parties(g):
+            for h, contour in contours.items():
+                if h != c and contour.contains(part.representative_point()) and contour.area > part.area:
+                    enclaves.append((c, part))
+                    hotes.add(h)
+                    break
+
+    def a_dessiner(c, g):
+        """Géométrie dessinée : sans les îlots enclavés, et sans trou pour un hôte."""
+        morceaux = [p for p in parties(g) if not any(e.equals(p) for _, e in enclaves)]
+        if c in hotes:
+            morceaux = [Polygon(p.exterior) for p in morceaux]
+        return unary_union(morceaux)
+
+    print("Enclaves détectées :", [(c, round(p.area, 4)) for c, p in enclaves], "hôtes :", sorted(hotes))
+    return "\n".join(
+        [f'<path class="dep z-{data[c]["z"]}" data-code="{c}" d="{proj.chemin(a_dessiner(c, g))}"/>'
+         for c, g in dep_shapes.items()]
+        + [f'<path class="dep enclave z-{data[c]["z"]}" data-code="{c}" d="{proj.chemin(p)}"/>'
+           for c, p in enclaves])
+
+
+def couche_zones(proj, dep_shapes, data):
+    """Limites entre zones (sans le trait de côte) et position des noms de zones."""
+    zone_union = {z: fusionner([dep_shapes[c] for c in data if data[c]["z"] == z]) for z in ZONES}
+    lignes = []
+    for i, a in enumerate(ZONES):
+        for b in ZONES[i + 1:]:
+            commun = zone_union[a].buffer(0.004).intersection(zone_union[b].boundary)
+            if not commun.is_empty:
+                lignes.append(proj.chemin(commun))
+    positions = {}                             # position finale du nom de chaque zone (réutilisée pour le DH)
+    for z in ZONES:
+        x, y = proj.point_etiquette(zone_union[z])
+        dx, dy = ZONE_LABEL_NUDGE.get(z, (0, 0))
+        positions[z] = (x + dx, y + dy)
+    etiquettes = [f'<text class="zlabel" x="{x:.1f}" y="{y:.1f}">{z}</text>' for z, (x, y) in positions.items()]
+    return "".join(lignes), etiquettes, positions
+
+
+def couche_contexte(proj, france, emprise):
+    """Masse terrestre (halo côtier), pays voisins et lacs, découpés à l'emprise."""
+    terres, voisins = [], []
+    for f in fond("pays")["features"]:
+        g = shape(f["geometry"]).buffer(0)
+        if not g.intersects(emprise):
+            continue
+        g = g.intersection(emprise).simplify(SIMPLIFY_DEG)
+        terres.append(g)
+        if f["properties"].get("ADMIN") != "France":
+            voisins.append(g)
+    terres.append(france)
+    lacs = "".join(
+        proj.chemin(shape(f["geometry"]).buffer(0).intersection(emprise))
+        for f in fond("lacs")["features"]
+        if shape(f["geometry"]).intersects(emprise) and shape(f["geometry"]).area > LAC_SURFACE_MIN)
+    return proj.chemin(unary_union(terres)), proj.chemin(unary_union(voisins)), lacs
+
+
+def couche_fleuves(proj, france, reperes):
+    """Fleuves principaux et secondaires (listés dans data/reperes.json)."""
+    france_large = france.buffer(FLEUVES_MARGE_DEG)
+    fleuves = {"main": [], "second": []}
+    for f in fond("fleuves")["features"]:
+        cls = "main" if f["properties"]["name"] in reperes["fleuves"]["principaux"] else "second"
+        g = shape(f["geometry"])
+        if g.intersects(france_large):
+            fleuves[cls].append(proj.chemin(g.intersection(france_large).simplify(SIMPLIFY_FLEUVES_DEG)))
+    return fleuves
+
+
+def couche_altitude(proj, france, reperes):
+    """Classes d'altitude RE2020 (hachures) et noms des massifs comme repères."""
+    geoms = {f["properties"]["classe"]: shape(f["geometry"]) for f in lire_json(ALTITUDE_PATH)["features"]}
+    chemins = [f'<path class="alt alt-{c[:3]}" d="{proj.chemin(geoms[c])}"/>' for c in ALTITUDE_CLASSES]
+    noms = []
+    for f in fond("massifs")["features"]:
+        g = shape(f["geometry"]).buffer(0).intersection(france)
+        if g.is_empty:
+            continue
+        x, y = proj.point_etiquette(g)
+        noms.append(f'<text class="mlabel" x="{x:.1f}" y="{y:.1f}">{reperes["massifs"][f["properties"]["NAME"]]}</text>')
+    return chemins, noms
+
+
+def couche_villes(proj, reperes):
+    svg = []
+    for v in reperes["villes"]:
+        x, y = proj.xy(v["lon"], v["lat"])
+        if v["position"] == "below":
+            tx, ty, ta = x, y + 24, "middle"
+        else:
+            tx, ty, ta = x + (9 if v["position"] == "start" else -9), y + 6, v["position"]
+        svg.append(f'<g class="city"><circle cx="{x:.1f}" cy="{y:.1f}" r="4.2"/>'
+                   f'<text x="{tx:.1f}" y="{ty:.1f}" text-anchor="{ta}">{v["nom"]}</text></g>')
+    return svg
+
+
+def couche_libelles(proj, reperes):
+    """Noms des pays et des mers."""
+    return [f'<text class="ctx {lib["type"]}" x="{x:.1f}" y="{y:.1f}">{lib["texte"]}</text>'
+            for lib in reperes["libelles"] for x, y in [proj.xy(lib["lon"], lib["lat"])]]
+
+
+def couper_nom(nom):
+    """Coupe un nom long au trait d'union le plus proche du milieu."""
+    if len(nom) <= DEP_LABEL_MAXLEN or "-" not in nom:
+        return [nom]
+    coupures = [i for i, ch in enumerate(nom) if ch == "-"]
+    i = min(coupures, key=lambda k: abs(k - len(nom) / 2))
+    return [nom[: i + 1], nom[i + 1:]]
+
+
+def couche_noms_departements(proj, dep_shapes, data):
+    etiquettes = []
+    for code, g in dep_shapes.items():
+        x, y = proj.point_etiquette(g, tolerance=0.005)
+        if code in DEP_LABEL_CODES_ONLY:
+            etiquettes.append(f'<text class="dlabel code" x="{x:.1f}" y="{y + 3:.1f}">{code}</text>')
+            continue
+        lignes = couper_nom(data[code]["n"])
+        y0 = y + 4 - (len(lignes) - 1) * 6
+        spans = "".join(f'<tspan x="{x:.1f}" y="{y0 + k * 12:.1f}">{t}</tspan>' for k, t in enumerate(lignes))
+        etiquettes.append(f'<text class="dlabel">{spans}</text>')
+    return etiquettes
+
+
 def fr_milliers(n):
-    return f"{n:,}".replace(",", "\u202f")          # espace fine insécable comme séparateur
+    return f"{n:,}".replace(",", " ")          # espace fine insécable comme séparateur
 
-dh_labels = []
-for z, (x, y) in zone_pos.items():
-    if z not in dh["zones"]:
-        continue
-    texte = f"DH méd. {fr_milliers(dh['zones'][z]['m'])} °C.h"
-    w = len(texte) * DH_LABEL_FONT * DH_LABEL_CHAR_W + 2 * DH_LABEL_PAD_X
-    cy = y + DH_LABEL_DY_SPECIAL.get(z, DH_LABEL_DY)
-    dh_labels.append(
-        f'<g class="dhlabel"><rect x="{x - w / 2:.1f}" y="{cy - DH_LABEL_H / 2:.1f}" width="{w:.1f}" '
-        f'height="{DH_LABEL_H}" rx="{DH_LABEL_RX}"/><text x="{x:.1f}" y="{cy:.1f}">{texte}</text></g>')
+
+def couche_dh(dh, positions):
+    """Étiquettes « DH médian » : boîte arrondie + texte, centrées sous (ou sur) le nom de zone."""
+    etiquettes = []
+    for z, (x, y) in positions.items():
+        texte = f"DH méd. {fr_milliers(dh['zones'][z]['m'])} °C.h"
+        w = len(texte) * DH_LABEL_FONT * DH_LABEL_CHAR_W + 2 * DH_LABEL_PAD_X
+        cy = y + DH_LABEL_DY_SPECIAL.get(z, DH_LABEL_DY)
+        etiquettes.append(
+            f'<g class="dhlabel"><rect x="{x - w / 2:.1f}" y="{cy - DH_LABEL_H / 2:.1f}" width="{w:.1f}" '
+            f'height="{DH_LABEL_H}" rx="{DH_LABEL_RX}"/><text x="{x:.1f}" y="{cy:.1f}">{texte}</text></g>')
+    return etiquettes
+
+
+def css_zones(dh):
+    """Couleurs des zones (dans l'ordre des DH médians, la plus claire pour le DH le plus bas),
+    remplissage des départements et mise en avant d'une zone."""
+    ordre = sorted(ZONES, key=lambda z: dh["zones"][z]["m"])
+    print("Ordre DH :", " < ".join(ordre))
+    couleurs = "\n".join(f"  --{z}: {PALETTE_ZONES[i]};" for i, z in enumerate(ordre))
+    regles = "\n".join(f".z-{z} {{ fill: var(--{z}); }}" for z in ZONES)
+    focus = ",\n".join(f'svg[data-focus="{z}"] .z-{z}' for z in ZONES) + " { opacity: 1; }"
+    return couleurs, regles + "\n" + focus
+
 
 # ---------------------------------------------------------------------------
 # Assemblage
 # ---------------------------------------------------------------------------
-counts = {z: sum(1 for v in data.values() if v["z"] == z) for z in ZONES}
-# Logements par zone : total et résidences principales (estimées depuis la part en %)
-logements = {z: {"l": sum(v["l"] for v in data.values() if v["z"] == z),
-                 "rp": round(sum(v["l"] * v["rp"] / 100 for v in data.values() if v["z"] == z))}
-             for z in ZONES}
-html = open(TEMPLATE_PATH, encoding="utf-8").read()
-for key, val in {
-    "__VIEWBOX__": f"0 0 {VIEW_W} {VIEW_H}",
-    "__VW__": str(VIEW_W), "__VH__": str(VIEW_H),
-    "__LAND__": land_d, "__NEIGH__": neigh_d, "__FRANCE__": geom_d(france),
-    "__PATHS__": dep_paths, "__ZONEBORDERS__": zone_border_d,
-    "__LAKES__": lake_d,
-    "__RIVERS_MAIN__": "".join(rivers["main"]), "__RIVERS_SECOND__": "".join(rivers["second"]),
-    "__ALTITUDE__": "\n".join(altitude_paths), "__MASSIF_LABELS__": "\n".join(massif_labels),
-    "__ZONELABELS__": "\n".join(zone_labels), "__CITIES__": "\n".join(city_svg),
-    "__CONTEXT__": "\n".join(context_svg),
-    "__DEPLABELS__": "\n".join(dep_labels),
-    "__ZONE_COLORS__": zone_colors_css,
-    "__DHLABELS__": "\n".join(dh_labels),
-    "__DH__": json.dumps(dh), "__DH_DATE__": DH_EXTRACTION,
-    "__DH_REFS__": json.dumps(DH_REFS), "__DH_SCALE__": str(DH_SCALE_MAX),
-    "__VERSION__": VERSION, "__BUILD_DATE__": BUILD_DATE, "__REPO_URL__": REPO_URL,
-    "__DATA__": json.dumps(data, ensure_ascii=False), "__COUNTS__": json.dumps(counts),
-    "__LOGEMENTS__": json.dumps(logements),
-}.items():
-    html = html.replace(key, val)
-open(OUT_PATH, "w", encoding="utf-8").write(html)
+def page_complete(fragment):
+    """Document HTML complet pour GitHub Pages autour du fragment généré depuis le gabarit."""
+    head, sep, rest = fragment.partition("</style>")
+    return ('<!doctype html>\n<html lang="fr">\n<head>\n<meta charset="utf-8">\n'
+            '<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">\n'
+            '<meta name="description" content="Carte interactive des zones climatiques RE2020 par département, '
+            'avec le DH médian et le nombre de logements par zone.">\n'
+            # Favicon : PNG en repli déclaré d'abord, SVG ensuite (retenu en priorité
+            # par les navigateurs récents), puis icône dédiée pour iOS
+            f'<link rel="icon" href="{FAVICON_PNG}" type="image/png" sizes="32x32">\n'
+            f'<link rel="icon" href="{FAVICON_SVG}" type="image/svg+xml">\n'
+            f'<link rel="apple-touch-icon" href="{APPLE_TOUCH_ICON}">\n'
+            + head + "\nbody { margin: 0; }\n" + sep + "\n</head>\n<body>\n" + rest + "\n</body>\n</html>\n")
 
-# Version autonome pour GitHub Pages : document HTML complet
-head, sep, rest = html.partition("</style>")
-index = ('<!doctype html>\n<html lang="fr">\n<head>\n<meta charset="utf-8">\n'
-         '<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">\n'
-         '<meta name="description" content="Carte interactive des zones climatiques RE2020 par département, '
-         'avec le nombre de logements par zone (INSEE, RP 2022).">\n'
-         # Favicon : PNG en repli déclaré d'abord, SVG ensuite (retenu en priorité
-         # par les navigateurs récents), puis icône dédiée pour iOS
-         f'<link rel="icon" href="{FAVICON_PNG}" type="image/png" sizes="32x32">\n'
-         f'<link rel="icon" href="{FAVICON_SVG}" type="image/svg+xml">\n'
-         f'<link rel="apple-touch-icon" href="{APPLE_TOUCH_ICON}">\n'
-         + head + "\nbody { margin: 0; }\n" + sep + "\n</head>\n<body>\n" + rest + "\n</body>\n</html>\n")
-open(INDEX_PATH, "w", encoding="utf-8").write(index)
-print("OK", VIEW_W, VIEW_H, len(html), {k: len(v) for k, v in rivers.items()}, len(altitude_paths))
+
+def main():
+    parser = argparse.ArgumentParser(description=__doc__.split("\n")[0])
+    parser.add_argument("--sortie", default=INDEX_PATH, help="page complète (défaut : index.html)")
+    parser.add_argument("--apercu", help="fragment sans en-tête HTML, pour l'aperçu dans Claude (facultatif)")
+    args = parser.parse_args()
+
+    # Données
+    data = lire_departements()
+    reperes = lire_json(REPERES_PATH)
+    dh = lire_dh(DH_PATH)
+    dep_shapes = {f["properties"]["code"]: shape(f["geometry"]).buffer(0) for f in fond("departements")["features"]}
+    france = fusionner(dep_shapes.values())
+
+    # Projection et emprise des couches de contexte
+    proj = Projection(france.bounds, VIEW_W, PAD, LAT0)
+    lon0, lat0, lon1, lat1 = proj.emprise_deg()
+    m = MARGE_CONTEXTE_DEG
+    emprise = box(lon0 - m, lat0 - m, lon1 + m, lat1 + m)
+
+    # Couches
+    deps_svg = couche_departements(proj, dep_shapes, data)
+    limites_zones, noms_zones, positions = couche_zones(proj, dep_shapes, data)
+    terre, voisins, lacs = couche_contexte(proj, france, emprise)
+    fleuves = couche_fleuves(proj, france, reperes)
+    altitude, massifs = couche_altitude(proj, france, reperes)
+    couleurs_zones, regles_zones = css_zones(dh)
+
+    # Synthèses par zone
+    counts = {z: sum(1 for v in data.values() if v["z"] == z) for z in ZONES}
+    # Logements par zone : total et résidences principales (estimées depuis la part en %)
+    logements = {z: {"l": sum(v["l"] for v in data.values() if v["z"] == z),
+                     "rp": round(sum(v["l"] * v["rp"] / 100 for v in data.values() if v["z"] == z))}
+                 for z in ZONES}
+    refs_texte = " et ".join(f"{fr_milliers(r['v'])} °C.h" for r in DH_REFS)
+
+    with open(TEMPLATE_PATH, encoding="utf-8") as f:
+        html = f.read()
+    for cle, val in {
+        "__VIEWBOX__": f"0 0 {VIEW_W} {proj.hauteur}",
+        "__VW__": str(VIEW_W), "__VH__": str(proj.hauteur),
+        "__LAND__": terre, "__NEIGH__": voisins, "__FRANCE__": proj.chemin(france),
+        "__PATHS__": deps_svg, "__ZONEBORDERS__": limites_zones,
+        "__LAKES__": lacs,
+        "__RIVERS_MAIN__": "".join(fleuves["main"]), "__RIVERS_SECOND__": "".join(fleuves["second"]),
+        "__ALTITUDE__": "\n".join(altitude), "__MASSIF_LABELS__": "\n".join(massifs),
+        "__ZONELABELS__": "\n".join(noms_zones), "__CITIES__": "\n".join(couche_villes(proj, reperes)),
+        "__CONTEXT__": "\n".join(couche_libelles(proj, reperes)),
+        "__DEPLABELS__": "\n".join(couche_noms_departements(proj, dep_shapes, data)),
+        "__ZONE_COLORS__": couleurs_zones, "__ZONE_RULES__": regles_zones,
+        "__DHLABELS__": "\n".join(couche_dh(dh, positions)),
+        "__NB_DEPTS__": str(len(data)),
+        "__DH__": json.dumps(dh), "__DH_DATE__": DH_EXTRACTION,
+        "__DH_REFS__": json.dumps(DH_REFS, ensure_ascii=False), "__DH_REFS_TEXTE__": refs_texte,
+        "__DH_SCALE__": str(DH_SCALE_MAX),
+        "__VERSION__": VERSION, "__BUILD_DATE__": BUILD_DATE, "__REPO_URL__": REPO_URL,
+        "__ZONES__": json.dumps(ZONES),
+        "__DATA__": json.dumps(data, ensure_ascii=False), "__COUNTS__": json.dumps(counts),
+        "__LOGEMENTS__": json.dumps(logements),
+    }.items():
+        if cle not in html:
+            sys.exit(f"Gabarit : marqueur {cle} absent")
+        html = html.replace(cle, val)
+
+    if args.apercu:
+        with open(args.apercu, "w", encoding="utf-8") as f:
+            f.write(html)
+    with open(args.sortie, "w", encoding="utf-8") as f:
+        f.write(page_complete(html))
+    print("OK", VIEW_W, proj.hauteur, len(html), {k: len(v) for k, v in fleuves.items()}, len(altitude))
+
+
+if __name__ == "__main__":
+    main()

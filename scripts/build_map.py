@@ -2,7 +2,8 @@
 
 Couches : mers en dégradé, pays voisins, départements, limites de zones, lacs,
 fleuves, altitude (classes RE2020 > 400 m et > 800 m), libellés (zones, villes,
-départements, pays, mers, massifs), DH médian par zone sur la carte.
+départements, pays, mers, massifs), DH médian par zone sur la carte,
+stations météo de référence RE2020 (une par zone).
 Colonne : fiche département, couches, zones, DH médians (open data OPEE),
 logements par zone (INSEE, RP 2022).
 
@@ -13,6 +14,7 @@ Usage (depuis la racine du dépôt) :
 import argparse
 import datetime
 import json
+import math
 import os
 import sys
 
@@ -27,7 +29,7 @@ from geo_utils import (Projection, chemin_svg, fusionner, lire_json, lire_table,
 # ---------------------------------------------------------------------------
 # Paramètres (regroupés en tête pour la lisibilité)
 # ---------------------------------------------------------------------------
-VERSION = "1.1.3"             # version de la carte (SemVer) — à reporter dans CHANGELOG.md et en tag git
+VERSION = "1.1.6"          # version de la carte (SemVer) — à reporter dans CHANGELOG.md et en tag git
 BUILD_DATE = datetime.date.today().strftime("%d/%m/%Y")   # date de génération affichée en pied de page
 REPO_URL = "https://github.com/Alliages/zones-climatiques-re2020"
 
@@ -70,7 +72,8 @@ DEP_LABEL_CODES_ONLY = {"75", "92", "93", "94", "90"}   # départements trop pet
 DEP_LABEL_MAXLEN = 11                                   # au-delà, le nom passe sur deux lignes
 # Décalages manuels des étiquettes de zones (unités du viewBox)
 ZONE_LABEL_NUDGE = {"H2a": (35, 22), "H2b": (-40, 40), "H2c": (-55, 20),
-                    "H1b": (-70, -15), "H3": (-10, -6), "H2d": (-35, 35)}
+                    "H1b": (-70, -15), "H3": (-10, -6), "H2d": (-35, 35),
+                    "H1c": (45, 0)}            # H1c : laisse la place à la station de Mâcon
 
 # Altitude : classes RE2020 issues du MNT (voir scripts/altitude/), deux surfaces emboîtées
 ALTITUDE_CLASSES = ["400+", "800+"]     # « 400+ » : hachures 45° ; « 800+ » : + hachures 135° (quadrillage)
@@ -89,6 +92,14 @@ DH_LABEL_CHAR_W = 0.6                   # largeur d'un caractère en police mono
 DH_LABEL_PAD_X, DH_LABEL_H, DH_LABEL_RX = 8, 22, 7
 DH_LABEL_DY = 30                        # position sous le nom de zone (centre de la boîte)
 DH_LABEL_DY_SPECIAL = {"H2d": -29, "H3": -34}   # au-dessus du nom : évite Avignon et Perpignan
+
+# Stations météo RE2020 (couche « Stations météo ») : cible + trait de rappel + cartouche « Météo Carpentras »
+# Positions et décalages des cartouches (dx, dy) dans data/reperes.json → "stations"
+STATION_PREFIXE = "☀️ Météo"           # mot affiché en bleu devant le nom de la station (emoji : compté 2 caractères)
+STATION_FONT = 11                       # taille du texte du cartouche (unités du viewBox, police mono) — à reporter dans .station text du gabarit
+STATION_CHAR_W = 0.6                    # largeur d'un caractère en police mono (fraction de la taille)
+STATION_PAD_X, STATION_H, STATION_RX = 6, 19, 4
+STATION_R = 6                           # rayon de l'anneau de la cible (le point central fait STATION_R / 3)
 
 
 # ---------------------------------------------------------------------------
@@ -242,6 +253,9 @@ def couche_altitude(proj, france, reperes):
 
 
 def couche_villes(proj, reperes):
+    """Villes repères ; celles qui portent une station météo (même nom) sont masquées
+    quand la couche Stations est affichée (classe « has-station »), pour éviter le doublon."""
+    noms_stations = {s["nom"] for s in reperes.get("stations", [])}
     svg = []
     for v in reperes["villes"]:
         x, y = proj.xy(v["lon"], v["lat"])
@@ -249,8 +263,37 @@ def couche_villes(proj, reperes):
             tx, ty, ta = x, y + 24, "middle"
         else:
             tx, ty, ta = x + (9 if v["position"] == "start" else -9), y + 6, v["position"]
-        svg.append(f'<g class="city"><circle cx="{x:.1f}" cy="{y:.1f}" r="4.2"/>'
+        classe = "city has-station" if v["nom"] in noms_stations else "city"
+        svg.append(f'<g class="{classe}"><circle cx="{x:.1f}" cy="{y:.1f}" r="4.2"/>'
                    f'<text x="{tx:.1f}" y="{ty:.1f}" text-anchor="{ta}">{v["nom"]}</text></g>')
+    return svg
+
+
+def couche_stations(proj, reperes):
+    """Stations météo de référence RE2020 : cible (anneau + point), trait de rappel et cartouche
+    « Météo + nom » décalé de (dx, dy). Le trait s'arrête au bord du cartouche."""
+    svg = []
+    for s in reperes.get("stations", []):
+        x, y = proj.xy(s["lon"], s["lat"])
+        cx, cy = x + s["dx"], y + s["dy"]                       # centre du cartouche
+        texte = f'{STATION_PREFIXE} {s["nom"]}'
+        w = 2 * STATION_PAD_X + len(texte) * STATION_FONT * STATION_CHAR_W
+        # Départ du trait sur l'anneau, dans la direction du cartouche
+        d = math.hypot(s["dx"], s["dy"]) or 1
+        x0, y0 = x + s["dx"] / d * STATION_R, y + s["dy"] / d * STATION_R
+        # Arrivée du trait sur le bord du cartouche (le fond translucide laisserait voir le trait dessous)
+        k = min(w / 2 / abs(s["dx"]) if s["dx"] else math.inf,
+                STATION_H / 2 / abs(s["dy"]) if s["dy"] else math.inf)
+        x1, y1 = cx - s["dx"] * k, cy - s["dy"] * k
+        info = f'Station météo RE2020 de la zone {s["zone"]} : {s["nom"]} ({s["alt"]} m)'
+        svg.append(
+            f'<g class="station"><title>{info}</title>'
+            f'<line x1="{x0:.1f}" y1="{y0:.1f}" x2="{x1:.1f}" y2="{y1:.1f}"/>'
+            f'<circle class="ring" cx="{x:.1f}" cy="{y:.1f}" r="{STATION_R}"/>'
+            f'<circle class="dot" cx="{x:.1f}" cy="{y:.1f}" r="{STATION_R / 3:.1f}"/>'
+            f'<rect x="{cx - w / 2:.1f}" y="{cy - STATION_H / 2:.1f}" width="{w:.1f}" height="{STATION_H}" rx="{STATION_RX}"/>'
+            f'<text x="{cx - w / 2 + STATION_PAD_X:.1f}" y="{cy + STATION_FONT * 0.35:.1f}">'
+            f'<tspan class="prefixe">{STATION_PREFIXE}</tspan> {s["nom"]}</text></g>')
     return svg
 
 
@@ -381,6 +424,7 @@ def main():
         "__RIVERS_MAIN__": "".join(fleuves["main"]), "__RIVERS_SECOND__": "".join(fleuves["second"]),
         "__ALTITUDE__": "\n".join(altitude), "__MASSIF_LABELS__": "\n".join(massifs),
         "__ZONELABELS__": "\n".join(noms_zones), "__CITIES__": "\n".join(couche_villes(proj, reperes)),
+        "__STATIONS__": "\n".join(couche_stations(proj, reperes)),
         "__CONTEXT__": "\n".join(couche_libelles(proj, reperes)),
         "__DEPLABELS__": "\n".join(couche_noms_departements(proj, dep_shapes, data)),
         "__ZONE_COLORS__": couleurs_zones, "__ZONE_RULES__": regles_zones,

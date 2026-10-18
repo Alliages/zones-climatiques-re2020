@@ -1,7 +1,17 @@
 {
-  "_description": "Repères de lecture de la carte : villes, libellés des pays et des mers, fleuves et massifs retenus. position : start = libellé à droite du point, end = à gauche, below = dessous. Fleuves : noms tels qu'écrits dans Natural Earth (Rhône et Saône corrigés par preparer_fonds.py). Massifs : nom Natural Earth → libellé affiché avec la couche Altitude.",
+  "_description": "Repères de lecture de la carte : villes, libellés des pays et des mers, fleuves et massifs retenus. position : start = libellé à droite du point, end = à gauche, below = dessous. Stations : stations météo de référence RE2020 (note technique Météo-France / ADEME 2025, tableau 1 ; La Rochelle et Nice de la RT2012 remplacées par Tours et Marignane), dx / dy = décalage du cartouche par rapport à la station (unités du viewBox). Une ville de même nom est masquée quand la couche Stations est affichée. Fleuves : noms tels qu'écrits dans Natural Earth (Rhône et Saône corrigés par preparer_fonds.py). Massifs : nom Natural Earth → libellé affiché avec la couche Altitude.",
+  "stations": [
+    {"zone": "H1a", "nom": "Trappes", "insee": "78621001", "alt": 167, "lon": 2.0097, "lat": 48.7733, "dx": -70, "dy": 30},
+    {"zone": "H1b", "nom": "Nancy", "insee": "54526001", "alt": 212, "lon": 6.2214, "lat": 48.6878, "dx": -20, "dy": -34},
+    {"zone": "H1c", "nom": "Mâcon", "insee": "71105001", "alt": 219, "lon": 4.7944, "lat": 46.2944, "dx": -80, "dy": 0},
+    {"zone": "H2a", "nom": "Rennes", "insee": "35281001", "alt": 36, "lon": -1.7339, "lat": 48.0689, "dx": -40, "dy": -32},
+    {"zone": "H2b", "nom": "Tours", "insee": "37179001", "alt": 108, "lon": 0.7300, "lat": 47.4450, "dx": 10, "dy": -32},
+    {"zone": "H2c", "nom": "Agen", "insee": "47091001", "alt": 58, "lon": 0.5950, "lat": 44.1767, "dx": 0, "dy": -32},
+    {"zone": "H2d", "nom": "Carpentras", "insee": "84031001", "alt": 99, "lon": 5.0583, "lat": 44.0836, "dx": 62, "dy": -20},
+    {"zone": "H3", "nom": "Marignane", "insee": "13054001", "alt": 9, "lon": 5.2161, "lat": 43.4378, "dx": 0, "dy": 34}
+  ],
   "villes": [
-    {"nom": "Paris", "lon": 2.35, "lat": 48.86, "position": "end"},
+    {"nom": "Paris", "lon": 2.35, "lat": 48.86, "position": "start"},
     {"nom": "Lille", "lon": 3.06, "lat": 50.63, "position": "start"},
     {"nom": "Rouen", "lon": 1.10, "lat": 49.44, "position": "end"},
     {"nom": "Caen", "lon": -0.37, "lat": 49.18, "position": "end"},

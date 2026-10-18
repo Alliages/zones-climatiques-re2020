@@ -8,3 +8,6 @@ brotli>=1.0           # compression WOFF2
 
 # Couche Altitude (scripts/altitude/) — seulement pour la recalculer depuis le MNT
 rasterio>=1.3
+
+# Températures horaires (scripts/meteo/) — seulement pour les réextraire du classeur
+openpyxl>=3.1

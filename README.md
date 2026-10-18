@@ -4,7 +4,9 @@ Carte interactive des 96 départements de France métropolitaine colorés selon 
 
 **Voir la carte : https://alliages.github.io/zones-climatiques-re2020/**
 
-Version actuelle : **1.1.3**. Historique dans [CHANGELOG.md](CHANGELOG.md), évolutions prévues dans [ROADMAP.md](ROADMAP.md).
+Réalisée avec l'aide du [Hub des Prescripteurs Bas Carbone](https://www.ifpeb.fr/nos-expertises/la-technique/le-hub-des-prescripteurs-bas-carbone/).
+
+Version actuelle : **1.1.6**. Historique dans [CHANGELOG.md](CHANGELOG.md), évolutions prévues dans [ROADMAP.md](ROADMAP.md).
 
 ## Ce que montre la page
 
@@ -13,7 +15,7 @@ Version actuelle : **1.1.3**. Historique dans [CHANGELOG.md](CHANGELOG.md), évo
 - Le degré-heures (DH) médian par zone, issu de l'open data OPEE (sélection de logements collectifs conformes), avec les repères 350 et 1 250 °C.h.
 - Le parc de logements par zone, en millions et en part du total métropolitain.
 - Des boîtes dépliables dans la colonne de droite, dont l'état est mémorisé par le navigateur.
-- Des couches activables : villes, noms des départements (masqués par défaut), DH médian sur la carte (masqué par défaut), mers, fleuves et pays voisins, altitude (400–800 m et plus de 800 m).
+- Des couches activables : stations météo de référence RE2020 (une par zone), villes, noms des départements (masqués par défaut), DH médian sur la carte (masqué par défaut), mers, fleuves et pays voisins, altitude (400–800 m et plus de 800 m).
 
 La page est autonome et légère : environ 215 Ko (57 Ko compressés) plus 78 Ko de polices hébergées dans le dépôt, sans appel à un service tiers.
 
@@ -27,7 +29,8 @@ La page est autonome et légère : environ 215 Ko (57 Ko compressés) plus 78 Ko
 | `data/zones_departements.txt` | Région, code, nom, zone (séparateur `\|`, avec en-tête) |
 | `data/logements_insee_2022.txt` | Code, nom, logements, % résidences principales, secondaires, vacants |
 | `data/dh_median_opee.csv` | DH médian et Q3 par zone, nombre de bâtiments (export OPEE, `;` et virgule décimale) |
-| `data/reperes.json` | Villes, libellés des pays et des mers, fleuves et massifs affichés |
+| `data/reperes.json` | Stations météo, villes, libellés des pays et des mers, fleuves et massifs affichés |
+| `data/meteo/meteo_<zone>.csv` | Température extérieure horaire (°C) : `heure`, `th_bc` (climat moyen), `th_d` (canicule) ; `;` et virgule décimale |
 | `data/altitude_re2020.geojson` | Classes d'altitude > 400 m et > 800 m (issues du MNT, simplifiées) |
 | `data/fonds/` | Fonds de carte : départements, pays, lacs, fleuves, massifs (extraits figés) |
 | `scripts/build_map.py` | Génère `index.html` à partir des données et du gabarit |
@@ -36,6 +39,7 @@ La page est autonome et légère : environ 215 Ko (57 Ko compressés) plus 78 Ko
 | `scripts/preparer_fonds.py` | Prépare `data/fonds/` depuis france-geojson et Natural Earth (commits figés) |
 | `scripts/preparer_polices.py` | Prépare `polices/` depuis Google Fonts (commit figé) |
 | `scripts/altitude/` | Calcul de la couche Altitude depuis un MNT |
+| `scripts/meteo/extraire_meteo.py` | Extrait `data/meteo/` du classeur des scénarios météo RE2020 |
 
 ## Régénérer la page
 
@@ -80,10 +84,12 @@ python3 scripts/altitude/simplifier_altitude.py /tmp/alt/classes_altitude_re2020
 - **Zones climatiques** : annexe du décret n° 2021-1004 du 29 juillet 2021 (RE2020), répartition des départements en huit zones.
 - **Logements** : Insee, recensement de la population 2022, exploitation principale (« Logements selon la catégorie en 2022, comparaisons départementales »), Licence Ouverte. Le nombre de résidences principales par zone est estimé à partir des parts publiées en pourcentage.
 - **DH médians** : open data OPEE (RE2020), sélection de logements collectifs conformes, extraction du 18/10/2026.
+- **Stations météo** : stations de référence des fichiers météo RE2020, note technique Météo-France / ADEME « Fichiers climatiques prospectifs Bâtiment » (2025), tableau 1 ; remplacement de La Rochelle et Nice (RT2012) par Tours et Marignane présenté en concertation RE2020 (DHUP, 22/07/2020).
+- **Températures horaires** : scénarios météorologiques Th-BC et Th-D de la RE2020 (DHUP / Météo-France, mesures 2000-2018), réservés au calcul réglementaire RE2020.
 - **Contours des départements** : IGN Admin Express, via [france-geojson](https://github.com/gregoiredavid/france-geojson) (Grégoire David), Licence Ouverte.
 - **Fleuves, lacs, pays voisins, massifs** : [Natural Earth](https://www.naturalearthdata.com/), domaine public.
 - **Altitude** : modèle numérique de terrain ~90 m (EPSG:4326). Couche indicative : la classe d'altitude RE2020 d'un projet se détermine à l'altitude réelle du terrain.
 - **Polices** : [Bricolage Grotesque](https://fonts.google.com/specimen/Bricolage+Grotesque), [Public Sans](https://fonts.google.com/specimen/Public+Sans), [IBM Plex Mono](https://fonts.google.com/specimen/IBM+Plex+Mono), licence SIL Open Font License 1.1 (textes dans `polices/`).
-- **Bibliothèques Python** (génération uniquement, voir `requirements.txt`) : [Shapely](https://shapely.readthedocs.io/), [NumPy](https://numpy.org/), [fontTools](https://github.com/fonttools/fonttools), [Brotli](https://github.com/google/brotli), [rasterio](https://rasterio.readthedocs.io/).
+- **Bibliothèques Python** (génération uniquement, voir `requirements.txt`) : [Shapely](https://shapely.readthedocs.io/), [NumPy](https://numpy.org/), [fontTools](https://github.com/fonttools/fonttools), [Brotli](https://github.com/google/brotli), [rasterio](https://rasterio.readthedocs.io/), [openpyxl](https://openpyxl.readthedocs.io/).
 
 Le code est distribué sous licence GNU GPL v3 (voir `LICENSE`). La page publiée n'utilise aucune bibliothèque JavaScript externe.

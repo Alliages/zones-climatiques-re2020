@@ -12,6 +12,8 @@ Liste des modifications à apporter dans les prochaines versions. Chaque ligne c
 - [ ] Préciser les îlots de chaleur urbains (ICU) : couche « Zones soumises à ICU » à partir des zones climatiques locales (LCZ) du Cerema, métropole
 
 ## Météo
+- [x] Stations météo de référence RE2020 sur la carte (→ 1.1.6)
+- [x] Températures horaires Th-BC / Th-D par zone en CSV (→ 1.1.6)
 - [ ] Afficher les courbes des fichiers météo
 - [ ] Créer des liens vers le wiki des données météo : https://github.com/Alliages/meteo/wiki/WIKI-Donn%C3%A9es-M%C3%A9t%C3%A9o
 

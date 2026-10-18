@@ -7,6 +7,18 @@ Numérotation [SemVer](https://semver.org/lang/fr/) :
 
 La version est définie par la constante `VERSION` en tête de `scripts/build_map.py`, affichée en pied de page et reportée en tag git (`vX.Y.Z`).
 
+## [1.1.6] — 18/10/2026
+
+Stations météo de référence RE2020 et températures horaires par zone.
+
+### Ajouté
+- Couche « Stations météo RE2020 », visible par défaut et placée en tête de la boîte Couches : une station par zone (Trappes, Nancy, Mâcon, Rennes, Tours, Agen, Carpentras, Marignane), dessinée en cible bleue reliée à un cartouche translucide « Météo + nom » ; survol : nom et altitude de la station. Rennes, Tours et Agen ne sont plus dessinées comme villes quand la couche est affichée.
+- Mention « avec l'aide du Hub des Prescripteurs Bas Carbone » (lien IFPEB) en pied de page et dans le README.
+- `data/meteo/meteo_<zone>.csv` : température extérieure horaire (te0, °C, 8 760 heures) des scénarios Th-BC (climat moyen) et Th-D (canicule), extraite par `scripts/meteo/extraire_meteo.py`.
+
+### Modifié
+- Paris : libellé à droite du point (la station de Trappes est à l'ouest) ; nom de zone H1c décalé vers l'est (station de Mâcon).
+
 ## [1.1.3] — 18/10/2026
 
 Revue du code et allègement de la page, sans changement de contenu.

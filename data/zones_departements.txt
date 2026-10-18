@@ -1,3 +1,4 @@
+region|code|nom|zone
 Auvergne-Rhône-Alpes|01|Ain|H1c
 Hauts-de-France|02|Aisne|H1a
 Auvergne-Rhône-Alpes|03|Allier|H1c

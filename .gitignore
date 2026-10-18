@@ -1,0 +1,3 @@
+# Téléchargements bruts des fonds de carte (scripts/preparer_fonds.py)
+.cache/
+__pycache__/

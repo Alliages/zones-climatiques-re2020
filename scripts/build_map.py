@@ -38,19 +38,14 @@ SIMPLIFY_DEG = 0.004          # simplification des couches de contexte (degrés)
 
 ZONES = ["H1a", "H1b", "H1c", "H2a", "H2b", "H2c", "H2d", "H3"]
 
-# Fleuves retenus (noms tels qu'écrits dans Natural Earth)
-RIVERS_MAIN = {"Seine", "Loire", "Garonne", "Rhône", "Rhne", "Rhin", "Rhine", "Rhein",
-               "Dordogne", "Mosel", "Maas"}
-RIVERS_SECOND = {"Marne", "Yonne", "Saône", "Sane", "Doubs", "Tarn", "Durance", "Vienne",
-                 "Lot", "Allier", "Cher", "Creuse", "Charente", "Vilaine", "Adour",
-                 "Somme", "Aveyron", "Ariège", "Sarthe", "Mayenne", "Aube", "Eure", "Oise",
-                 "Aude", "Ill", "Sarre"}
-
 # Altitude : classes RE2020 issues du MNT (voir scripts/altitude/), deux surfaces emboîtées
 ALTITUDE_PATH = os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "data", "altitude_re2020.geojson")
 ALTITUDE_CLASSES = ["400+", "800+"]     # « 400+ » : hachures 45° ; « 800+ » : + hachures 135° (quadrillage)
 
 # Degrés-heures (DH) médians par zone : open data OPEE (bâtiments conformes), synthèse fournie par Guigui
+REPERES_PATH = os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "data", "reperes.json")
+# Repères (villes, pays et mers, fleuves, massifs) : voir data/reperes.json
+
 DH_PATH = os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "data", "dh_median_opee.csv")
 DH_EXTRACTION = "18/10/2026"            # date d'extraction OPEE affichée dans la note de source
 DH_REFS = [350, 1250]                   # traits de référence (°C.h) : seuil bas et DH max courant
@@ -64,38 +59,6 @@ DH_LABEL_DY_SPECIAL = {"H2d": -29, "H3": -34}   # au-dessus du nom : évite Avig
 # Palette des zones, du plus clair au plus foncé : attribuée aux zones par DH médian croissant
 PALETTE_ZONES = ["#fbdf72", "#f9cf52", "#f6bd3a", "#f4a930", "#f09528", "#e88021", "#da691a", "#c25212"]
 
-# Noms des massifs affichés avec la couche Altitude (nom Natural Earth → libellé) — repères de lecture
-MASSIFS = {"ALPS": "Alpes", "PYRENEES": "Pyrénées", "Massif Central": "Massif central",
-           "Jura": "Jura", "Vosges": "Vosges"}
-
-# Villes repères : (nom, lon, lat, position du libellé : start=droite, end=gauche, below=dessous)
-CITIES = [
-    ("Paris", 2.35, 48.86, "end"), ("Lille", 3.06, 50.63, "start"),
-    ("Rouen", 1.10, 49.44, "end"), ("Caen", -0.37, 49.18, "end"),
-    ("Reims", 4.03, 49.26, "start"), ("Strasbourg", 7.75, 48.58, "start"),
-    ("Brest", -4.49, 48.39, "start"), ("Rennes", -1.68, 48.11, "start"),
-    ("Nantes", -1.55, 47.22, "start"), ("Orléans", 1.91, 47.90, "start"),
-    ("Tours", 0.69, 47.39, "end"), ("Dijon", 5.04, 47.32, "start"),
-    ("Besançon", 6.02, 47.24, "start"), ("Poitiers", 0.34, 46.58, "start"),
-    ("Limoges", 1.26, 45.83, "start"), ("Clermont-Ferrand", 3.09, 45.78, "below"),
-    ("Lyon", 4.84, 45.76, "start"), ("Grenoble", 5.72, 45.19, "start"),
-    ("Valence", 4.89, 44.93, "start"), ("Avignon", 4.81, 43.95, "end"),
-    ("Bordeaux", -0.58, 44.84, "end"), ("Agen", 0.62, 44.20, "start"),
-    ("Pau", -0.37, 43.30, "end"),
-    ("Toulouse", 1.44, 43.60, "start"), ("Montpellier", 3.88, 43.61, "start"),
-    ("Marseille", 5.37, 43.30, "start"), ("Nice", 7.26, 43.70, "end"),
-    ("Perpignan", 2.90, 42.70, "start"), ("Ajaccio", 8.74, 41.93, "end"),
-]
-
-# Libellés de contexte (pays et mers) : (texte, lon, lat, classe)
-CONTEXT_LABELS = [
-    ("Royaume-Uni", 0.2, 51.05, "country"), ("Belgique", 4.65, 50.62, "country"),
-    ("Allemagne", 8.75, 49.25, "country"), ("Suisse", 7.55, 46.85, "country"),
-    ("Italie", 8.25, 44.85, "country"), ("Espagne", -0.9, 41.95, "country"),
-    ("Manche", -2.6, 49.95, "sea"), ("Océan Atlantique", -3.7, 45.6, "sea"),
-    ("Mer Méditerranée", 6.4, 42.45, "sea"),
-]
-
 # Décalages manuels des étiquettes de zones (pixels du viewBox), si besoin
 ZONE_LABEL_NUDGE = {"H2a": (35, 22), "H2b": (-40, 40), "H2c": (-55, 20),
                     "H1b": (-70, -15), "H3": (-10, -6), "H2d": (-35, 35)}
@@ -104,19 +67,32 @@ ZONE_LABEL_NUDGE = {"H2a": (35, 22), "H2b": (-40, 40), "H2c": (-55, 20),
 # Chargement des données
 # ---------------------------------------------------------------------------
 def load(name):
-    return json.load(open(f"{GEO_DIR}/{name}.geojson", encoding="utf-8"))
+    """Lit un fond de carte de data/fonds/ (préparé par preparer_fonds.py)."""
+    with open(f"{GEO_DIR}/{name}.geojson", encoding="utf-8") as f:
+        return json.load(f)
 
-deps_geo = load("dep")
-data = {}
-for line in open(TABLE_PATH, encoding="utf-8").read().strip().splitlines():
-    reg, code, nom, zone = line.split("|")
-    data[code] = {"r": reg, "n": nom, "z": zone}
+def load_path(path):
+    with open(path, encoding="utf-8") as f:
+        return json.load(f)
 
-# Logements INSEE (RP 2022) : nom|total|% résidences principales|% secondaires|% vacants
-for line in open(LOGEMENTS_PATH, encoding="utf-8").read().strip().splitlines():
-    nom, total, p_rp, p_rs, p_vac = line.split("|")
-    code = next(c for c, v in data.items() if v["n"] == nom)
-    data[code].update({"l": int(total), "rp": float(p_rp), "rs": float(p_rs), "lv": float(p_vac)})
+def lire_table(path):
+    """Lit un fichier texte à séparateur « | » et ligne d'en-tête → liste de dictionnaires."""
+    with open(path, encoding="utf-8") as f:
+        lignes = f.read().strip().splitlines()
+    cles = lignes[0].split("|")
+    return [dict(zip(cles, l.split("|"))) for l in lignes[1:]]
+
+with open(REPERES_PATH, encoding="utf-8") as f:
+    reperes = json.load(f)
+deps_geo = load("departements")
+data = {d["code"]: {"r": d["region"], "n": d["nom"], "z": d["zone"]} for d in lire_table(TABLE_PATH)}
+
+# Logements INSEE (RP 2022), jointure par code ; le nom sert de contrôle
+for d in lire_table(LOGEMENTS_PATH):
+    assert data[d["code"]]["n"] == d["nom"], f"Nom différent pour le département {d['code']}"
+    data[d["code"]].update({"l": int(d["logements"]), "rp": float(d["pct_residences_principales"]),
+                            "rs": float(d["pct_residences_secondaires"]), "lv": float(d["pct_vacants"])})
+assert all("l" in v for v in data.values()), "Logements manquants pour un département"
 
 dep_shapes = {f["properties"]["code"]: shape(f["geometry"]).buffer(0) for f in deps_geo["features"]}
 france = unary_union([g.buffer(0.002) for g in dep_shapes.values()]).buffer(-0.002)
@@ -223,7 +199,7 @@ for z in ZONES:
     zone_pos[z] = (x + dx, y + dy)
 
 # 3. Pays voisins (gris) et masse terrestre pour le halo côtier
-countries = load("ne_50m_admin_0_countries")
+countries = load("pays")
 land_parts, neigh_parts = [], []
 for f in countries["features"]:
     g = shape(f["geometry"]).buffer(0)
@@ -238,7 +214,7 @@ land_d = geom_d(unary_union(land_parts))
 neigh_d = geom_d(unary_union(neigh_parts))
 
 # 4. Lacs (Léman notamment)
-lakes = load("ne_10m_lakes")
+lakes = load("lacs")
 lake_d = "".join(
     geom_d(shape(f["geometry"]).buffer(0).intersection(VIEW_BOX_DEG))
     for f in lakes["features"]
@@ -247,39 +223,35 @@ lake_d = "".join(
 # 5. Fleuves (découpés à la France légèrement élargie pour garder le Rhin frontalier)
 france_buf = france.buffer(0.03)
 rivers = {"main": [], "second": []}
-for fn in ("ne_10m_rivers_lake_centerlines", "ne_10m_rivers_europe"):
-    for f in load(fn)["features"]:
-        name = f["properties"].get("name")
-        cls = "main" if name in RIVERS_MAIN else "second" if name in RIVERS_SECOND else None
-        if not cls:
-            continue
-        g = shape(f["geometry"])
-        if g.intersects(france_buf):
-            rivers[cls].append(geom_d(g.intersection(france_buf).simplify(0.002)))
+for f in load("fleuves")["features"]:
+    name = f["properties"].get("name")
+    cls = "main" if name in reperes["fleuves"]["principaux"] else "second"
+    g = shape(f["geometry"])
+    if g.intersects(france_buf):
+        rivers[cls].append(geom_d(g.intersection(france_buf).simplify(0.002)))
 
 # 6. Altitude (classes RE2020 > 400 m et > 800 m) + noms des massifs comme repères
-alt_geo = json.load(open(ALTITUDE_PATH, encoding="utf-8"))
+alt_geo = load_path(ALTITUDE_PATH)
 alt_geoms = {f["properties"]["classe"]: shape(f["geometry"]) for f in alt_geo["features"]}
 altitude_paths = [f'<path class="alt alt-{c[:3]}" d="{geom_d(alt_geoms[c])}"/>' for c in ALTITUDE_CLASSES]
 
-regions = load("ne_10m_geography_regions_polys")
+regions = load("massifs")
 massif_labels = []
 for f in regions["features"]:
     nm = f["properties"].get("NAME")
-    if nm not in MASSIFS:
-        continue
     g = shape(f["geometry"]).buffer(0).intersection(france)
     if g.is_empty:
         continue
     biggest = max(g.geoms, key=lambda p: p.area) if g.geom_type == "MultiPolygon" else g
     pt = polylabel(biggest, tolerance=0.01)
     x, y = proj(pt.x, pt.y)
-    massif_labels.append(f'<text class="mlabel" x="{x:.1f}" y="{y:.1f}">{MASSIFS[nm]}</text>')
+    massif_labels.append(f'<text class="mlabel" x="{x:.1f}" y="{y:.1f}">{reperes["massifs"][nm]}</text>')
 
 # 7. Villes
 city_svg = []
-for name, lon, lat, pos in CITIES:
-    x, y = proj(lon, lat)
+for v in reperes["villes"]:
+    name, pos = v["nom"], v["position"]
+    x, y = proj(v["lon"], v["lat"])
     if pos == "below":
         tx, ty, ta = x, y + 24, "middle"
     else:
@@ -289,8 +261,9 @@ for name, lon, lat, pos in CITIES:
 
 # 8. Pays et mers
 context_svg = []
-for txt, lon, lat, cls in CONTEXT_LABELS:
-    x, y = proj(lon, lat)
+for lib in reperes["libelles"]:
+    txt, cls = lib["texte"], lib["type"]
+    x, y = proj(lib["lon"], lib["lat"])
     context_svg.append(f'<text class="ctx {cls}" x="{x:.1f}" y="{y:.1f}">{txt}</text>')
 
 # 9. Noms des départements (couche masquée par défaut)

@@ -1,0 +1,58 @@
+{
+  "_description": "Repères de lecture de la carte : villes, libellés des pays et des mers, fleuves et massifs retenus. position : start = libellé à droite du point, end = à gauche, below = dessous. Fleuves : noms tels qu'écrits dans Natural Earth (Rhône et Saône corrigés par preparer_fonds.py). Massifs : nom Natural Earth → libellé affiché avec la couche Altitude.",
+  "villes": [
+    {"nom": "Paris", "lon": 2.35, "lat": 48.86, "position": "end"},
+    {"nom": "Lille", "lon": 3.06, "lat": 50.63, "position": "start"},
+    {"nom": "Rouen", "lon": 1.10, "lat": 49.44, "position": "end"},
+    {"nom": "Caen", "lon": -0.37, "lat": 49.18, "position": "end"},
+    {"nom": "Reims", "lon": 4.03, "lat": 49.26, "position": "start"},
+    {"nom": "Strasbourg", "lon": 7.75, "lat": 48.58, "position": "start"},
+    {"nom": "Brest", "lon": -4.49, "lat": 48.39, "position": "start"},
+    {"nom": "Rennes", "lon": -1.68, "lat": 48.11, "position": "start"},
+    {"nom": "Nantes", "lon": -1.55, "lat": 47.22, "position": "start"},
+    {"nom": "Orléans", "lon": 1.91, "lat": 47.90, "position": "start"},
+    {"nom": "Tours", "lon": 0.69, "lat": 47.39, "position": "end"},
+    {"nom": "Dijon", "lon": 5.04, "lat": 47.32, "position": "start"},
+    {"nom": "Besançon", "lon": 6.02, "lat": 47.24, "position": "start"},
+    {"nom": "Poitiers", "lon": 0.34, "lat": 46.58, "position": "start"},
+    {"nom": "Limoges", "lon": 1.26, "lat": 45.83, "position": "start"},
+    {"nom": "Clermont-Ferrand", "lon": 3.09, "lat": 45.78, "position": "below"},
+    {"nom": "Lyon", "lon": 4.84, "lat": 45.76, "position": "start"},
+    {"nom": "Grenoble", "lon": 5.72, "lat": 45.19, "position": "start"},
+    {"nom": "Valence", "lon": 4.89, "lat": 44.93, "position": "start"},
+    {"nom": "Avignon", "lon": 4.81, "lat": 43.95, "position": "end"},
+    {"nom": "Bordeaux", "lon": -0.58, "lat": 44.84, "position": "end"},
+    {"nom": "Agen", "lon": 0.62, "lat": 44.20, "position": "start"},
+    {"nom": "Pau", "lon": -0.37, "lat": 43.30, "position": "end"},
+    {"nom": "Toulouse", "lon": 1.44, "lat": 43.60, "position": "start"},
+    {"nom": "Montpellier", "lon": 3.88, "lat": 43.61, "position": "start"},
+    {"nom": "Marseille", "lon": 5.37, "lat": 43.30, "position": "start"},
+    {"nom": "Nice", "lon": 7.26, "lat": 43.70, "position": "end"},
+    {"nom": "Perpignan", "lon": 2.90, "lat": 42.70, "position": "start"},
+    {"nom": "Ajaccio", "lon": 8.74, "lat": 41.93, "position": "end"}
+  ],
+  "libelles": [
+    {"texte": "Royaume-Uni", "lon": 0.2, "lat": 51.05, "type": "country"},
+    {"texte": "Belgique", "lon": 4.65, "lat": 50.62, "type": "country"},
+    {"texte": "Allemagne", "lon": 8.75, "lat": 49.25, "type": "country"},
+    {"texte": "Suisse", "lon": 7.55, "lat": 46.85, "type": "country"},
+    {"texte": "Italie", "lon": 8.25, "lat": 44.85, "type": "country"},
+    {"texte": "Espagne", "lon": -0.9, "lat": 41.95, "type": "country"},
+    {"texte": "Manche", "lon": -2.6, "lat": 49.95, "type": "sea"},
+    {"texte": "Océan Atlantique", "lon": -3.7, "lat": 45.6, "type": "sea"},
+    {"texte": "Mer Méditerranée", "lon": 6.4, "lat": 42.45, "type": "sea"}
+  ],
+  "fleuves": {
+    "principaux": ["Seine", "Loire", "Garonne", "Rhône", "Rhin", "Rhine", "Rhein", "Dordogne", "Mosel", "Maas"],
+    "secondaires": ["Marne", "Yonne", "Saône", "Doubs", "Tarn", "Durance", "Vienne", "Lot", "Allier", "Cher",
+                    "Creuse", "Charente", "Vilaine", "Adour", "Somme", "Aveyron", "Ariège", "Sarthe", "Mayenne",
+                    "Aube", "Eure", "Oise", "Aude", "Ill", "Sarre"]
+  },
+  "massifs": {
+    "ALPS": "Alpes",
+    "PYRENEES": "Pyrénées",
+    "Massif Central": "Massif central",
+    "Jura": "Jura",
+    "Vosges": "Vosges"
+  }
+}

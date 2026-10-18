@@ -1,0 +1,10 @@
+# Génération de la page (scripts/build_map.py) et des fonds (scripts/preparer_fonds.py)
+shapely>=2.1          # coverage_simplify / coverage_union_all (pavage des départements)
+numpy>=1.24
+
+# Polices hébergées (scripts/preparer_polices.py) — seulement pour les régénérer
+fonttools>=4.40
+brotli>=1.0           # compression WOFF2
+
+# Couche Altitude (scripts/altitude/) — seulement pour la recalculer depuis le MNT
+rasterio>=1.3

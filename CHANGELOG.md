@@ -7,6 +7,25 @@ Numérotation [SemVer](https://semver.org/lang/fr/) :
 
 La version est définie par la constante `VERSION` en tête de `scripts/build_map.py`, affichée en pied de page et reportée en tag git (`vX.Y.Z`).
 
+## [1.1.3] — 18/10/2026
+
+Revue du code et allègement de la page, sans changement de contenu.
+
+### Modifié
+- Page allégée : 713 Ko → 214 Ko (171 Ko → 57 Ko compressés). Départements simplifiés en pavage (chaque frontière commune simplifiée une seule fois, sans jour entre voisins), limites de zones et contour de la France tirés de ce pavage, chemins SVG en coordonnées relatives arrondies à 0,5 unité.
+- Polices hébergées dans le dépôt (`polices/`, WOFF2 réduits aux caractères latins, 78 Ko) : plus aucun appel à Google Fonts.
+- Espaces insécables entre les nombres et les unités (%, °C.h, M) : « 29,6 % » ne passe plus à la ligne dans la boîte Logements.
+- Pied de page : source réglementaire des zones (décret n° 2021-1004 du 29 juillet 2021), contours IGN Admin Express via france-geojson, polices et licences.
+
+### Outillage
+- Fonds de carte versionnés dans `data/fonds/`, préparés par `scripts/preparer_fonds.py` à partir de commits figés de france-geojson et Natural Earth : `python3 scripts/build_map.py` suffit pour régénérer la page.
+- Repères (villes, pays et mers, fleuves, massifs) sortis du code vers `data/reperes.json`.
+- `scripts/geo_utils.py` : outils communs aux scripts ; `build_map.py` organisé en fonctions avec `main()`.
+- Liste des zones, seuils DH et nombre de départements définis une seule fois dans `build_map.py` et injectés dans la page.
+- Fichiers texte avec en-tête ; logements joints par code département (contrôle du nom).
+- Couche « relief » renommée « altitude » dans le code ; aperçu matplotlib obsolète retiré des scripts d'altitude.
+- `requirements.txt`, `scripts/preparer_polices.py`, README réécrit (fichiers, commandes, sources et licences).
+
 ## [1.1.2] — 18/10/2026
 
 ### Ajouté

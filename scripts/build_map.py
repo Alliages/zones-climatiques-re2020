@@ -16,11 +16,12 @@ import json
 import os
 import sys
 
+import shapely
 from shapely.geometry import Polygon, box, shape
-from shapely.ops import unary_union
+from shapely.ops import linemerge, unary_union
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
-from geo_utils import (Projection, fusionner, lire_json, lire_table, parties,   # noqa: E402
+from geo_utils import (Projection, chemin_svg, fusionner, lire_json, lire_table, parties,   # noqa: E402
                        plus_grande_partie)
 
 # ---------------------------------------------------------------------------
@@ -55,8 +56,12 @@ VIEW_W = 1000                 # largeur du viewBox SVG
 LAT0 = 46.5                   # latitude de référence de la projection
 PAD = 42                      # marge autour de la France (place pour mers et voisins)
 MARGE_CONTEXTE_DEG = 0.3      # débord des couches de contexte au-delà du viewBox
-SIMPLIFY_DEG = 0.004          # simplification des pays voisins (degrés)
-SIMPLIFY_FLEUVES_DEG = 0.002  # simplification des fleuves (degrés)
+PAS_SVG = 0.5                 # précision des chemins SVG (unités du viewBox ; 1 unité ≈ 1,2 km)
+# Simplifications, en unités du viewBox (tolérances choisies pour rester invisibles même zoomé × 3)
+SIMPL_DEPARTEMENTS = 1.0      # pavage des départements (frontières communes simplifiées une seule fois)
+SIMPL_VOISINS = 0.5           # pays voisins et lacs
+SIMPL_HALO = 3.0              # masse terrestre sous le halo côtier (floutée : peut être grossière)
+SIMPL_FLEUVES = 0.4           # fleuves
 LAC_SURFACE_MIN = 0.005       # lacs plus petits ignorés (degrés²)
 FLEUVES_MARGE_DEG = 0.03      # fleuves découpés à la France légèrement élargie (garde le Rhin frontalier)
 
@@ -131,16 +136,16 @@ def lire_dh(path):
 # ---------------------------------------------------------------------------
 # Couches
 # ---------------------------------------------------------------------------
-def couche_departements(proj, dep_shapes, data):
-    """Un chemin par département, coloré par zone.
+def couche_departements(dep_px, data):
+    """Un chemin par département, coloré par zone (géométries du pavage simplifié, en pixels).
 
     Les enclaves (ex. Enclave des Papes : îlot du Vaucluse entouré par la Drôme) sont
     détectées automatiquement : le département hôte est dessiné sans son trou, et
     l'îlot est posé par-dessus dans un chemin à part, sans liseré (classe « enclave »).
     """
-    contours = {c: Polygon(plus_grande_partie(g).exterior) for c, g in dep_shapes.items()}
+    contours = {c: Polygon(plus_grande_partie(g).exterior) for c, g in dep_px.items()}
     enclaves, hotes = [], set()                # (code de l'enclave, polygone), départements hôtes
-    for c, g in dep_shapes.items():
+    for c, g in dep_px.items():
         for part in parties(g):
             for h, contour in contours.items():
                 if h != c and contour.contains(part.representative_point()) and contour.area > part.area:
@@ -155,23 +160,32 @@ def couche_departements(proj, dep_shapes, data):
             morceaux = [Polygon(p.exterior) for p in morceaux]
         return unary_union(morceaux)
 
-    print("Enclaves détectées :", [(c, round(p.area, 4)) for c, p in enclaves], "hôtes :", sorted(hotes))
+    print("Enclaves détectées :", [(c, round(p.area)) for c, p in enclaves], "hôtes :", sorted(hotes))
     return "\n".join(
-        [f'<path class="dep z-{data[c]["z"]}" data-code="{c}" d="{proj.chemin(a_dessiner(c, g))}"/>'
-         for c, g in dep_shapes.items()]
-        + [f'<path class="dep enclave z-{data[c]["z"]}" data-code="{c}" d="{proj.chemin(p)}"/>'
+        [f'<path class="dep z-{data[c]["z"]}" data-code="{c}" d="{chemin_svg(a_dessiner(c, g), PAS_SVG)}"/>'
+         for c, g in dep_px.items()]
+        + [f'<path class="dep enclave z-{data[c]["z"]}" data-code="{c}" d="{chemin_svg(p, PAS_SVG)}"/>'
            for c, p in enclaves])
 
 
-def couche_zones(proj, dep_shapes, data):
-    """Limites entre zones (sans le trait de côte) et position des noms de zones."""
-    zone_union = {z: fusionner([dep_shapes[c] for c in data if data[c]["z"] == z]) for z in ZONES}
+def couche_zones(proj, dep_shapes, dep_px, data):
+    """Limites entre zones (sans le trait de côte) et position des noms de zones.
+
+    Les limites sont les frontières communes des départements du pavage simplifié : elles
+    tombent exactement sur les bords des aplats. Les étiquettes sont placées sur les
+    contours d'origine (positions indépendantes de la simplification).
+    """
+    zone_px = {z: shapely.coverage_union_all([dep_px[c] for c in data if data[c]["z"] == z]) for z in ZONES}
     lignes = []
     for i, a in enumerate(ZONES):
         for b in ZONES[i + 1:]:
-            commun = zone_union[a].buffer(0.004).intersection(zone_union[b].boundary)
-            if not commun.is_empty:
-                lignes.append(proj.chemin(commun))
+            commun = zone_px[a].boundary.intersection(zone_px[b].boundary)
+            # Lignes seules (une collection peut contenir des points de contact ou des multilignes)
+            traits = [g for g in shapely.get_parts(shapely.get_parts(commun))
+                      if g.geom_type == "LineString" and not g.is_empty]
+            if traits:
+                lignes.append(chemin_svg(linemerge(traits), PAS_SVG))
+    zone_union = {z: fusionner([dep_shapes[c] for c in data if data[c]["z"] == z]) for z in ZONES}
     positions = {}                             # position finale du nom de chaque zone (réutilisée pour le DH)
     for z in ZONES:
         x, y = proj.point_etiquette(zone_union[z])
@@ -188,16 +202,17 @@ def couche_contexte(proj, france, emprise):
         g = shape(f["geometry"]).buffer(0)
         if not g.intersects(emprise):
             continue
-        g = g.intersection(emprise).simplify(SIMPLIFY_DEG)
+        g = g.intersection(emprise)
         terres.append(g)
         if f["properties"].get("ADMIN") != "France":
             voisins.append(g)
     terres.append(france)
     lacs = "".join(
-        proj.chemin(shape(f["geometry"]).buffer(0).intersection(emprise))
+        proj.chemin(shape(f["geometry"]).buffer(0).intersection(emprise), SIMPL_VOISINS)
         for f in fond("lacs")["features"]
         if shape(f["geometry"]).intersects(emprise) and shape(f["geometry"]).area > LAC_SURFACE_MIN)
-    return proj.chemin(unary_union(terres)), proj.chemin(unary_union(voisins)), lacs
+    return (proj.chemin(unary_union(terres), SIMPL_HALO), proj.chemin(unary_union(voisins), SIMPL_VOISINS),
+            lacs)
 
 
 def couche_fleuves(proj, france, reperes):
@@ -208,7 +223,7 @@ def couche_fleuves(proj, france, reperes):
         cls = "main" if f["properties"]["name"] in reperes["fleuves"]["principaux"] else "second"
         g = shape(f["geometry"])
         if g.intersects(france_large):
-            fleuves[cls].append(proj.chemin(g.intersection(france_large).simplify(SIMPLIFY_FLEUVES_DEG)))
+            fleuves[cls].append(proj.chemin(g.intersection(france_large), SIMPL_FLEUVES))
     return fleuves
 
 
@@ -328,14 +343,20 @@ def main():
     france = fusionner(dep_shapes.values())
 
     # Projection et emprise des couches de contexte
-    proj = Projection(france.bounds, VIEW_W, PAD, LAT0)
+    proj = Projection(france.bounds, VIEW_W, PAD, LAT0, PAS_SVG)
+    # Pavage des départements projeté puis simplifié d'un bloc : chaque frontière commune
+    # est simplifiée une seule fois, sans jour ni chevauchement entre voisins
+    codes = list(dep_shapes)
+    simplifies = shapely.coverage_simplify([proj.projeter(dep_shapes[c]) for c in codes], SIMPL_DEPARTEMENTS)
+    dep_px = dict(zip(codes, simplifies))
+    france_px = shapely.coverage_union_all(simplifies)
     lon0, lat0, lon1, lat1 = proj.emprise_deg()
     m = MARGE_CONTEXTE_DEG
     emprise = box(lon0 - m, lat0 - m, lon1 + m, lat1 + m)
 
     # Couches
-    deps_svg = couche_departements(proj, dep_shapes, data)
-    limites_zones, noms_zones, positions = couche_zones(proj, dep_shapes, data)
+    deps_svg = couche_departements(dep_px, data)
+    limites_zones, noms_zones, positions = couche_zones(proj, dep_shapes, dep_px, data)
     terre, voisins, lacs = couche_contexte(proj, france, emprise)
     fleuves = couche_fleuves(proj, france, reperes)
     altitude, massifs = couche_altitude(proj, france, reperes)
@@ -354,7 +375,7 @@ def main():
     for cle, val in {
         "__VIEWBOX__": f"0 0 {VIEW_W} {proj.hauteur}",
         "__VW__": str(VIEW_W), "__VH__": str(proj.hauteur),
-        "__LAND__": terre, "__NEIGH__": voisins, "__FRANCE__": proj.chemin(france),
+        "__LAND__": terre, "__NEIGH__": voisins, "__FRANCE__": chemin_svg(france_px, PAS_SVG),
         "__PATHS__": deps_svg, "__ZONEBORDERS__": limites_zones,
         "__LAKES__": lacs,
         "__RIVERS_MAIN__": "".join(fleuves["main"]), "__RIVERS_SECOND__": "".join(fleuves["second"]),

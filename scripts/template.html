@@ -1,8 +1,15 @@
 <title>Zones climatiques RE2020</title>
 <meta name="claude:viewport-fit-sides" content="cover">
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700&family=Public+Sans:ital,wght@0,400;0,500;0,600;1,400&family=IBM+Plex+Mono:wght@500&display=swap">
 <style>
+/* Polices hébergées dans le dépôt (scripts/preparer_polices.py, licence SIL OFL) */
+@font-face { font-family: "Bricolage Grotesque"; src: url("polices/bricolage-grotesque.woff2") format("woff2");
+  font-weight: 500 700; font-display: swap; }
+@font-face { font-family: "Public Sans"; src: url("polices/public-sans.woff2") format("woff2");
+  font-weight: 400 600; font-display: swap; }
+@font-face { font-family: "Public Sans"; src: url("polices/public-sans-italique.woff2") format("woff2");
+  font-weight: 400; font-style: italic; font-display: swap; }
+@font-face { font-family: "IBM Plex Mono"; src: url("polices/ibm-plex-mono.woff2") format("woff2");
+  font-weight: 500; font-display: swap; }
 /* Carte pleine largeur à gauche, légende + couches + fiche département à droite ; une seule colonne sur téléphone */
 :root {
   --bg: #f3f1ec;
@@ -199,8 +206,8 @@ aside { display: grid; gap: 22px; min-width: 0; }
 
 /* Logements par zone */
 .housing { display: grid; gap: 4px; }
-.hrow { display: grid; grid-template-columns: 44px 1fr 58px 44px; align-items: center; gap: 8px; padding: 2px 8px; font-size: 13.5px; }
-.hrow .val, .hrow .pct { font-variant-numeric: tabular-nums; text-align: right; }
+.hrow { display: grid; grid-template-columns: 44px 1fr 58px 48px; align-items: center; gap: 8px; padding: 2px 8px; font-size: 13.5px; }
+.hrow .val, .hrow .pct { font-variant-numeric: tabular-nums; text-align: right; white-space: nowrap; }
 .hrow .pct { color: var(--muted); font-size: 12.5px; }
 .housing-total { margin: 8px 8px 0; font-size: 12.5px; color: var(--muted); line-height: 1.4; }
 
@@ -242,7 +249,7 @@ footer a { color: var(--accent); }
 
 <div class="wrap">
   <header>
-    <span class="eyebrow">RE2020 · France métropolitaine · __NB_DEPTS__ départements</span>
+    <span class="eyebrow">RE2020 · France métropolitaine · __NB_DEPTS__&nbsp;départements</span>
     <h1>Zones climatiques RE2020</h1>
     <p class="lede">Chaque département est rattaché à l'une des huit zones climatiques, de H1a au nord à H3 sur le littoral méditerranéen. Survolez un département pour sa fiche, cliquez une zone de la légende pour l'isoler.</p>
   </header>
@@ -470,8 +477,8 @@ for (const z of ZONE_ORDER) {
   row.title = `${NF.format(LOGEMENTS[z].l)} logements, dont environ ${NF.format(LOGEMENTS[z].rp)} résidences principales`;
   row.innerHTML =
     zoneCode(z) + zoneBar(z, (LOGEMENTS[z].l / MAX_LOG) * 100) +
-    `<span class="val">${NF1.format(LOGEMENTS[z].l / 1e6)} M</span>` +
-    `<span class="pct">${NF1.format((LOGEMENTS[z].l / TOTAL_LOG) * 100)} %</span>`;
+    `<span class="val">${NF1.format(LOGEMENTS[z].l / 1e6)}\u00a0M</span>` +
+    `<span class="pct">${NF1.format((LOGEMENTS[z].l / TOTAL_LOG) * 100)}\u202f%</span>`;
   housing.appendChild(row);
 }
 housingTotal.textContent =
@@ -484,7 +491,7 @@ housingTotal.textContent =
 const pos = v => `${(v / DH_SCALE) * 100}%`;
 const REF_MAX = Math.max(...DH_REFS.map(r => r.v));      // trait plein pour le seuil le plus haut
 const refsHtml = DH_REFS.map(r =>
-  `<span class="ref${r.v === REF_MAX ? " max" : ""}" style="left:${pos(r.v)}" title="${NF.format(r.v)} °C.h : ${r.info}"></span>`).join("");
+  `<span class="ref${r.v === REF_MAX ? " max" : ""}" style="left:${pos(r.v)}" title="${NF.format(r.v)}\u00a0°C.h : ${r.info}"></span>`).join("");
 // Ligne d'axe : valeurs des traits de référence
 const axis = document.createElement("div");
 axis.className = "dhrow axis";
@@ -497,7 +504,7 @@ for (const z of DH_ORDER) {
   const d = DH.zones[z];
   const row = document.createElement("div");
   row.className = "dhrow";
-  row.title = `${z} : DH médian ${NF.format(d.m)} °C.h sur ${NF.format(d.n)} bâtiments conformes`;
+  row.title = `${z} : DH médian ${NF.format(d.m)}\u00a0°C.h sur ${NF.format(d.n)} bâtiments conformes`;
   row.innerHTML =
     zoneCode(z) +
     `<span class="dhtrack"><span class="base"></span><span class="fill" style="width:${pos(Math.min(d.m, DH_SCALE))};background:var(--${z})"></span>${refsHtml}</span>` +
@@ -508,8 +515,8 @@ for (const z of DH_ORDER) {
 }
 if (DH.all) {
   dhTotal.textContent = `Sélection de logements collectifs (bâtiments conformes). ` +
-    `Toutes zones : médiane ${NF.format(DH.all.m)} °C.h sur ${NF.format(DH.all.n)} bâtiments. ` +
-    `Traits : ${DH_REFS.map(r => `${NF.format(r.v)} °C.h (${r.court})`).join(" et ")}. ` +
+    `Toutes zones : médiane ${NF.format(DH.all.m)}\u00a0°C.h sur ${NF.format(DH.all.n)} bâtiments. ` +
+    `Traits : ${DH_REFS.map(r => `${NF.format(r.v)}\u00a0°C.h (${r.court})`).join(" et ")}. ` +
     `Les couleurs des zones suivent l'ordre des DH médians.`;
 }
 
@@ -554,10 +561,10 @@ function showDept(path) {
     `<p class="name">${d.n}</p>` +
     `<p class="region">${d.r}</p>` +
     `<div class="tags"><span class="pill" style="background:var(--${d.z})">Zone ${d.z}</span>` +
-    (DH.zones[d.z] ? `<span class="dh-tag" style="border-color:var(--${d.z})" title="DH médian de la zone ${d.z} (open data OPEE, ${NF.format(DH.zones[d.z].n)} bâtiments conformes)">DH méd. <b>${NF.format(DH.zones[d.z].m)}</b> °C.h</span>` : "") +
+    (DH.zones[d.z] ? `<span class="dh-tag" style="border-color:var(--${d.z})" title="DH médian de la zone ${d.z} (open data OPEE, ${NF.format(DH.zones[d.z].n)} bâtiments conformes)">DH méd. <b>${NF.format(DH.zones[d.z].m)}</b>\u00a0°C.h</span>` : "") +
     `</div>` +
     `<p class="stock"><b>${NF.format(d.l)}</b> logements en 2022<br>` +
-    `${NF1.format(d.rp)} % résidences principales · ${NF1.format(d.rs)} % secondaires · ${NF1.format(d.lv)} % vacants</p>`;
+    `${NF1.format(d.rp)}\u202f% résidences principales · ${NF1.format(d.rs)}\u202f% secondaires · ${NF1.format(d.lv)}\u202f% vacants</p>`;
 }
 
 svg.querySelectorAll(".dep").forEach(p => {

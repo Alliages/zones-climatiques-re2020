@@ -7,6 +7,20 @@ Numérotation [SemVer](https://semver.org/lang/fr/) :
 
 La version est définie par la constante `VERSION` en tête de `scripts/build_map.py`, affichée en pied de page et reportée en tag git (`vX.Y.Z`).
 
+## [1.2.0] — 22/10/2026
+
+Îlots de chaleur urbains (ICU) d'après les zones climatiques locales (LCZ) du Cerema.
+
+### Ajouté
+- Couche « Îlots de chaleur urbains (ICU) », visible par défaut et placée en tête de la boîte Couches : un point rouge par territoire LCZ du Cerema (88 territoires de plus de 50 000 habitants, métropole), d'aire proportionnelle à la surface ICU.
+- Au clic sur un point, encart de zoom : commune centre (contour noir, mairie), communes voisines nommées, cours et plans d'eau, pays voisin ou mer, vignette du territoire entier, puis « ICU … km² · Ville de … km² ». Sur téléphone, l'encart passe sous la carte. Les encarts sont chargés à la demande (`data/icu/zooms/`).
+- Méthode : un îlot réunit les LCZ 1 à 3 (bâti compact) et les LCZ 4 à 6 situées à moins de 15 m (voisines directes), sous leur enveloppe convexe ; seuls les îlots d'au moins 10 ha sont retenus (2 277 îlots, de 0,9 km² à Annemasse à 254 km² à Paris).
+- Pied de page et README : source Cerema (avec lien), méthode, contours des communes et position des mairies.
+
+### Outillage
+- `scripts/icu/` : `telecharger_lcz.py` (seul le shapefile de chaque archive, par plages d'octets), `calcul_icu.py` (îlots), `extraire_eau.py` (LCZ G), `preparer_icu.py` (synthèse et encarts) ; données préparées dans `data/icu/`.
+- `requirements.txt` : pyshp et pyproj (recalcul de la couche ICU seulement).
+
 ## [1.1.8] — 22/10/2026
 
 Contours des départements masquables.

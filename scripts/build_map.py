@@ -3,7 +3,8 @@
 Couches : mers en dégradé, pays voisins, départements, limites de zones, lacs,
 fleuves, altitude (classes RE2020 > 400 m et > 800 m), libellés (zones, villes,
 départements, pays, mers, massifs), DH médian par zone sur la carte,
-stations météo de référence RE2020 (une par zone).
+stations météo de référence RE2020 (une par zone), îlots de chaleur urbains (ICU, un point
+par territoire LCZ du Cerema, encart de zoom chargé au clic depuis data/icu/zooms/).
 Colonne : fiche département, couches, zones, DH médians (open data OPEE),
 logements par zone (INSEE, RP 2022).
 
@@ -29,7 +30,7 @@ from geo_utils import (Projection, chemin_svg, fusionner, lire_json, lire_table,
 # ---------------------------------------------------------------------------
 # Paramètres (regroupés en tête pour la lisibilité)
 # ---------------------------------------------------------------------------
-VERSION = "1.1.8"          # version de la carte (SemVer) — à reporter dans CHANGELOG.md et en tag git
+VERSION = "1.2.0"          # version de la carte (SemVer) — à reporter dans CHANGELOG.md et en tag git
 BUILD_DATE = datetime.date.today().strftime("%d/%m/%Y")   # date de génération affichée en pied de page
 REPO_URL = "https://github.com/Alliages/zones-climatiques-re2020"
 
@@ -41,6 +42,8 @@ LOGEMENTS_PATH = os.path.join(RACINE, "data", "logements_insee_2022.txt")
 REPERES_PATH = os.path.join(RACINE, "data", "reperes.json")       # villes, pays et mers, fleuves, massifs
 ALTITUDE_PATH = os.path.join(RACINE, "data", "altitude_re2020.geojson")
 DH_PATH = os.path.join(RACINE, "data", "dh_median_opee.csv")
+ICU_PATH = os.path.join(RACINE, "data", "icu", "territoires.json")   # préparé par scripts/icu/preparer_icu.py
+ICU_ZOOMS_DIR = os.path.join(RACINE, "data", "icu", "zooms")        # un encart par territoire
 TEMPLATE_PATH = os.path.join(RACINE, "scripts", "template.html")
 INDEX_PATH = os.path.join(RACINE, "index.html")
 # Icônes de l'onglet (fichiers à la racine du dépôt, à côté de index.html)
@@ -100,6 +103,9 @@ STATION_FONT = 11                       # taille du texte du cartouche (unités 
 STATION_CHAR_W = 0.6                    # largeur d'un caractère en police mono (fraction de la taille)
 STATION_PAD_X, STATION_H, STATION_RX = 6, 19, 4
 STATION_R = 6                           # rayon de l'anneau de la cible (le point central fait STATION_R / 3)
+
+# Îlots de chaleur urbains (couche « ICU ») : un point par territoire LCZ, aire ∝ surface ICU
+ICU_R_MIN, ICU_R_MAX = 3.0, 13.0       # rayon des points (unités du viewBox, 1 unité ≈ 1,2 km)
 
 
 # ---------------------------------------------------------------------------
@@ -297,6 +303,32 @@ def couche_stations(proj, reperes):
     return svg
 
 
+def couche_icu(proj, icu):
+    """Îlots de chaleur urbains : un point par territoire LCZ, rayon ∝ √(surface ICU) ;
+    les plus gros d'abord, pour que les petits restent cliquables au-dessus."""
+    terr = icu["territoires"]
+    icu_max = max(t["icu_km2"] for t in terr.values()) or 1
+    points = []
+    for slug, t in sorted(terr.items(), key=lambda kv: -kv[1]["icu_km2"]):
+        x, y = proj.xy(t["lon"], t["lat"])
+        r = ICU_R_MIN + (ICU_R_MAX - ICU_R_MIN) * math.sqrt(t["icu_km2"] / icu_max)
+        surface = f'{t["icu_km2"]:.2f}' if t["icu_km2"] < 10 else f'{t["icu_km2"]:.1f}'
+        info = f'{t["nom"]} · ICU {surface.replace(".", ",")} km² ({t["ilots"]} îlots)'
+        points.append(f'<circle class="icu" data-slug="{slug}" data-nom="{t["nom"]}" '
+                      f'cx="{x:.1f}" cy="{y:.1f}" r="{r:.1f}"><title>{info}</title></circle>')
+    return points
+
+
+def zooms_icu(icu):
+    """Encarts de zoom de tous les territoires (aperçu Claude seulement : la page publiée
+    les charge un par un au clic depuis data/icu/zooms/)."""
+    zooms = {}
+    for slug in icu["territoires"]:
+        with open(os.path.join(ICU_ZOOMS_DIR, f"{slug}.html"), encoding="utf-8") as f:
+            zooms[slug] = f.read()
+    return zooms
+
+
 def couche_libelles(proj, reperes):
     """Noms des pays et des mers."""
     return [f'<text class="ctx {lib["type"]}" x="{x:.1f}" y="{y:.1f}">{lib["texte"]}</text>'
@@ -387,6 +419,7 @@ def main():
     data = lire_departements()
     reperes = lire_json(REPERES_PATH)
     dh = lire_dh(DH_PATH)
+    icu = lire_json(ICU_PATH)
     dep_shapes = {f["properties"]["code"]: shape(f["geometry"]).buffer(0) for f in fond("departements")["features"]}
     france = fusionner(dep_shapes.values())
 
@@ -430,6 +463,9 @@ def main():
         "__ALTITUDE__": "\n".join(altitude), "__MASSIF_LABELS__": "\n".join(massifs),
         "__ZONELABELS__": "\n".join(noms_zones), "__CITIES__": "\n".join(couche_villes(proj, reperes)),
         "__STATIONS__": "\n".join(couche_stations(proj, reperes)),
+        "__ICU__": "\n".join(couche_icu(proj, icu)),
+        "__ICU_N__": str(len(icu["territoires"])),
+        "__ICU_MIN_HA__": f'{icu["meta"]["ilot_min_ha"]:g}',
         "__CONTEXT__": "\n".join(couche_libelles(proj, reperes)),
         "__DEPLABELS__": "\n".join(couche_noms_departements(proj, dep_shapes, data)),
         "__ZONE_COLORS__": couleurs_zones, "__ZONE_RULES__": regles_zones,
@@ -447,11 +483,14 @@ def main():
             sys.exit(f"Gabarit : marqueur {cle} absent")
         html = html.replace(cle, val)
 
+    # Encarts ICU : chargés au clic sur la page publiée ; intégrés à l'aperçu Claude (pas de fichiers annexes)
+    if "__ICU_ZOOMS__" not in html:
+        sys.exit("Gabarit : marqueur __ICU_ZOOMS__ absent")
     if args.apercu:
         with open(args.apercu, "w", encoding="utf-8") as f:
-            f.write(html)
+            f.write(html.replace("__ICU_ZOOMS__", json.dumps(zooms_icu(icu), ensure_ascii=False)))
     with open(args.sortie, "w", encoding="utf-8") as f:
-        f.write(page_complete(html))
+        f.write(page_complete(html.replace("__ICU_ZOOMS__", "null")))
     print("OK", VIEW_W, proj.hauteur, len(html), {k: len(v) for k, v in fleuves.items()}, len(altitude))
 
 

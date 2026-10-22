@@ -259,6 +259,62 @@ footer .credit { color: var(--ink); margin-top: 6px; }
 footer .version { font-family: var(--font-mono); font-size: 12px; margin-top: 6px; }
 footer a { color: var(--accent); }
 
+
+/* ---------------- Îlots de chaleur urbains (ICU, LCZ Cerema, variante 1) ---------------- */
+:root { --icu: #d62828; --icu-bg: rgba(214, 40, 40, .28); }
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) { --icu: #ff5a4f; --icu-bg: rgba(255, 90, 79, .3); } }
+:root[data-theme="dark"] { --icu: #ff5a4f; --icu-bg: rgba(255, 90, 79, .3); }
+.layer-icu { display: none; }
+svg.show-icu .layer-icu { display: inline; }
+.icu { fill: var(--icu); fill-opacity: .72; stroke: #fff; stroke-width: 1; cursor: pointer; }
+.icu:hover, .icu.on { fill-opacity: 1; stroke: var(--ink); stroke-width: 2; }
+.map { position: relative; }
+.icu-zoom { position: absolute; top: 12px; right: 12px; width: min(380px, calc(100% - 24px));
+  background: var(--surface); border: 1px solid var(--line); border-radius: 12px;
+  box-shadow: 0 8px 28px rgba(0,0,0,.18); padding: 12px 14px; display: grid; gap: 8px; }
+.icu-zoom[hidden] { display: none; }
+@media (max-width: 860px) {   /* téléphone : encart sous la carte plutôt que par-dessus */
+  .icu-zoom { position: static; width: auto; margin-top: 12px; box-sizing: border-box; }
+}
+.icu-zoom header { display: flex; justify-content: space-between; align-items: baseline; gap: 8px; }
+.icu-zoom h3 { margin: 0; font-family: var(--font-display); font-size: 19px; }
+.icu-zoom button { border: 0; background: none; font-size: 22px; line-height: 1; color: var(--muted); cursor: pointer; padding: 0 2px; }
+.icu-zoom p { margin: 0; font-size: 13px; color: var(--muted); }
+.icu-zoom #icu-corps > svg { width: 100%; height: auto; border-radius: 8px; display: block; }
+.icu-zoom .z-fond { fill: var(--neigh); }                              /* pays voisin */
+.icu-zoom .z-vfond { fill: var(--bg); }
+.icu-zoom .mer { fill: var(--sea-shallow); }                            /* mer */
+.icu-zoom .z-commune { fill: var(--surface); stroke: var(--muted); stroke-width: .7; stroke-opacity: .7; }
+.icu-zoom .z-vcommune { fill: var(--surface); stroke: var(--muted); stroke-width: .3; stroke-opacity: .6; }
+.icu-zoom .z-ville { fill: none; stroke: var(--ink); stroke-width: 1.8; }
+.icu-zoom .z-emprise { fill: none; stroke: var(--muted); stroke-dasharray: 3 3; stroke-width: .8; }
+.icu-zoom .z-nom, .icu-zoom .z-pays { font-family: var(--font-body); font-size: 10px; fill: var(--muted);
+  text-anchor: middle; dominant-baseline: middle; paint-order: stroke; stroke: var(--surface); stroke-width: 3px; stroke-linejoin: round; }
+.icu-zoom .z-nom.main { font-size: 12px; font-weight: 700; fill: var(--ink); letter-spacing: .04em; }
+.icu-zoom .z-pays { font-size: 11px; letter-spacing: .12em; fill: var(--muted); stroke: var(--neigh); }
+.icu-zoom .z-vbord { fill: none; stroke: var(--line); }
+.icu-zoom .z-env { fill: var(--icu-bg); stroke: var(--icu); stroke-width: 1.4; stroke-dasharray: 5 3; }
+.icu-zoom .z-sel { fill: var(--icu); fill-opacity: .55; }
+.icu-zoom .z-noyau { fill: var(--icu); }
+.icu-zoom .z-venv { fill: var(--icu); }
+.icu-zoom .z-cadre { fill: none; stroke: var(--ink); stroke-width: 1.2; }
+.icu-zoom .z-echelle line { stroke: var(--ink); stroke-width: 2; }
+.icu-zoom .z-echelle text { font-size: 11px; fill: var(--ink); text-anchor: middle; font-family: var(--font-mono);
+  paint-order: stroke; stroke: var(--surface); stroke-width: 3px; }
+.icu-zoom .icu-surf { font-size: 14px; color: var(--ink); }
+.icu-zoom .icu-surf b { color: var(--muted); font-weight: 600; }
+.icu-key { display: flex; flex-wrap: wrap; gap: 4px 12px; font-size: 12px; color: var(--muted); }
+.icu-key i { display: inline-block; width: 12px; height: 12px; border-radius: 3px; vertical-align: -2px; margin-right: 4px; }
+.swatch-icu { width: 14px; height: 14px; vertical-align: -2px; margin-right: 6px; }
+.icu-zoom .z-vterr { fill: var(--surface); stroke: var(--muted); stroke-width: .6; }
+/* Repères du zoom : eau (LCZ G) et mairie de la commune centre */
+:root { --z-eau: #9cc3de; }
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) { --z-eau: #2f5878; } }
+:root[data-theme="dark"] { --z-eau: #2f5878; }
+.icu-zoom .z-eau { fill: var(--z-eau); stroke: none; }
+.icu-zoom .z-mairie { fill: var(--ink); stroke: var(--surface); stroke-width: 1; }
+.icu-zoom .z-nom.m { text-anchor: start; dominant-baseline: auto; }
+
 @media (prefers-reduced-motion: reduce) { .dep, .track, .track::after { transition: none; } }
 </style>
 
@@ -271,7 +327,7 @@ footer a { color: var(--accent); }
 
   <div class="layout">
     <div class="map">
-      <svg id="map" class="show-stations show-depborders show-context show-altitude show-cities" viewBox="__VIEWBOX__" role="img" aria-label="Carte des zones climatiques RE2020 par département">
+      <svg id="map" class="show-icu show-stations show-depborders show-context show-altitude show-cities" viewBox="__VIEWBOX__" role="img" aria-label="Carte des zones climatiques RE2020 par département">
         <defs>
           <linearGradient id="sea" x1="0" y1="0" x2="1" y2="1">
             <stop offset="0" style="stop-color: var(--sea-deep)"/>
@@ -330,6 +386,10 @@ __DEPLABELS__
         <g id="cities" class="layer-cities">
 __CITIES__
         </g>
+        <!-- Îlots de chaleur urbains : un point par territoire LCZ (Cerema) -->
+        <g class="layer-icu">
+__ICU__
+        </g>
         <g class="layer-stations">
 __STATIONS__
         </g>
@@ -337,6 +397,11 @@ __STATIONS__
 __DHLABELS__
         </g>
       </svg>
+      <div class="icu-zoom" id="icu-zoom" hidden>
+        <header><h3 id="icu-titre"></h3><button type="button" id="icu-fermer" aria-label="Fermer">×</button></header>
+        <svg width="0" height="0" style="position:absolute" aria-hidden="true"><defs><clipPath id="z-clip-vignette"><rect width="110" height="80" rx="4"/></clipPath></defs></svg>
+        <div id="icu-corps"></div>
+      </div>
     </div>
 
     <aside>
@@ -348,6 +413,11 @@ __DHLABELS__
       <details class="box" id="box-layers" open>
         <summary class="panel-title">Couches</summary>
         <div class="toggles">
+          <label class="toggle" for="t-icu">
+            <span>Îlots de chaleur urbains (ICU)<small><svg class="swatch-icu" viewBox="0 0 16 16" aria-hidden="true"><circle cx="8" cy="8" r="6" fill="var(--icu)" fill-opacity=".8"/></svg>__ICU_N__ territoires LCZ du Cerema ; point ∝ surface ICU. Cliquez un point pour le zoom.</small></span>
+            <input type="checkbox" id="t-icu" checked>
+            <span class="track"></span>
+          </label>
           <label class="toggle" for="t-stations">
             <span>Stations météo RE2020<small><svg class="swatch-station" viewBox="0 0 16 16" aria-hidden="true"><circle cx="8" cy="8" r="5.5" fill="var(--surface)" stroke="var(--station)" stroke-width="2"/><circle cx="8" cy="8" r="2" fill="var(--station)"/></svg>Fichiers météo Th-BC / Th-D, une station par zone</small></span>
             <input type="checkbox" id="t-stations" checked>
@@ -409,6 +479,7 @@ __DHLABELS__
     <p>Zones climatiques : annexe du décret n° 2021-1004 du 29 juillet 2021 (RE2020), découpage départemental. Logements : Insee, recensement de la population 2022 (résidences principales, secondaires, occasionnelles et logements vacants). Contours des départements : IGN Admin Express, via france-geojson (Licence Ouverte). Fleuves, lacs, pays voisins et noms des massifs : Natural Earth (domaine public). Stations météo : stations de référence des fichiers météo RE2020 (Météo-France / ADEME, note technique 2025).</p>
     <p>Altitude : modèle numérique de terrain (~90 m) agrégé à ~500 m, classes 400–800 m et &gt; 800 m, îlots et creux de moins de 70 km² retirés, contour simplifié à ~1 km. Représentation indicative : la classe d'altitude RE2020 d'un projet se détermine à l'altitude réelle du terrain.</p>
     <p>DH (degrés-heures d'inconfort estival) : médiane par zone d'une sélection de logements collectifs conformes de l'open data OPEE (RE2020), extraction du __DH_DATE__. Traits de référence à __DH_REFS_TEXTE__. Les couleurs des zones vont du plus clair au plus foncé selon leur DH médian.</p>
+    <p>Îlots de chaleur urbains (ICU) : <a href="https://www.cerema.fr/fr/presse/dossier/zones-climatiques-locales-lcz-outil-libre-service-visualiser">zones climatiques locales (LCZ) du Cerema</a>, images satellites 2022-2023, __ICU_N__ territoires de plus de 50&nbsp;000 habitants de métropole (Licence Ouverte 2.0). Un îlot réunit les LCZ 1 à 3 (bâti compact) et les LCZ 4 à 6 situées à moins de 15&nbsp;m, sous leur enveloppe convexe ; seuls les îlots d'au moins __ICU_MIN_HA__&nbsp;ha sont retenus. Dans le zoom : eau (LCZ G, plans d'eau d'au moins 3&nbsp;ha), contours des communes (france-geojson, simplifiés) et mairie de la commune centre (« Communes et villes de France », data.gouv.fr, Licence Ouverte).</p>
     <p>Polices : Bricolage Grotesque, Public Sans et IBM Plex Mono (licence SIL Open Font License), hébergées avec la page.</p>
     <p class="credit">Carte réalisée avec l'aide du <a href="https://www.ifpeb.fr/nos-expertises/la-technique/le-hub-des-prescripteurs-bas-carbone/">Hub des Prescripteurs Bas Carbone</a>.</p>
     <p class="version">Version __VERSION__ · générée le __BUILD_DATE__ · <a href="__REPO_URL__">code source et historique des versions</a></p>
@@ -425,6 +496,8 @@ const LOGEMENTS = __LOGEMENTS__;   // zone → { l: logements, rp: résidences p
 const DH = __DH__;                 // { zones: { zone → { m: médiane °C.h, n: nb bâtiments } }, all: { m, n } }
 const DH_REFS = __DH_REFS__;       // traits de référence : [{ v: °C.h, court, info }]
 const DH_SCALE = __DH_SCALE__;     // borne de l'échelle des barres DH (°C.h)
+const ICU_ZOOMS = __ICU_ZOOMS__;   // encarts ICU intégrés (aperçu) ; null : chargés au clic depuis data/icu/zooms/
+const ICU_LEGENDE = "<div class=\"icu-key\"><span><i style=\"background:var(--icu)\"></i>LCZ 1–3</span><span><i style=\"background:var(--icu);opacity:.55\"></i>LCZ 4–6 voisines</span><span><i style=\"background:var(--icu-bg);outline:1.4px dashed var(--icu)\"></i>Îlots ICU</span><span><i style=\"outline:1px dashed var(--muted)\"></i>Territoire LCZ</span><span><i style=\"outline:1.8px solid var(--ink)\"></i>Commune centre</span></div>";
 const BOX_STORE_KEY = "zones-re2020:boites";   // mémorisation par visiteur des boîtes pliées
 const ZONE_ORDER = __ZONES__;      // zones dans l'ordre réglementaire (source : build_map.py)
 const NF = new Intl.NumberFormat("fr-FR");
@@ -443,7 +516,7 @@ const dhTotal = document.getElementById("dh-total");
 // Interrupteur → classe CSS posée sur la carte
 const TOGGLES = { "t-stations": "show-stations", "t-context": "show-context", "t-altitude": "show-altitude",
                   "t-cities": "show-cities", "t-depborders": "show-depborders", "t-deps": "show-deps",
-                  "t-dhmap": "show-dhlabels" };
+                  "t-dhmap": "show-dhlabels", "t-icu": "show-icu" };
 let lockedZone = null;            // zone isolée par clic dans la légende
 let activePath = null;            // département mis en avant
 
@@ -601,6 +674,42 @@ svg.querySelectorAll(".dep").forEach(p => {
   p.addEventListener("mouseenter", () => showDept(p));
   p.addEventListener("click", () => showDept(p));
 });
+
+// ---------------------------------------------------------------------------
+// Îlots de chaleur urbains : encart de zoom au clic sur un point
+// ---------------------------------------------------------------------------
+const icuZoom = document.getElementById("icu-zoom");
+const icuCorps = document.getElementById("icu-corps");
+const icuCache = Object.assign({}, ICU_ZOOMS || {});   // encarts déjà chargés
+let icuOn = null;                                      // point sélectionné
+function fermerIcu() { icuZoom.hidden = true; if (icuOn) icuOn.classList.remove("on"); icuOn = null; }
+function afficherIcu(html) {
+  // Légende insérée entre le dessin et la ligne des surfaces
+  icuCorps.innerHTML = html.replace('<p class="icu-surf">', ICU_LEGENDE + '<p class="icu-surf">');
+}
+async function ouvrirIcu(c) {
+  if (icuOn) icuOn.classList.remove("on");
+  icuOn = c; c.classList.add("on");
+  const slug = c.dataset.slug;
+  document.getElementById("icu-titre").textContent = c.dataset.nom;
+  icuZoom.hidden = false;
+  if (!(slug in icuCache)) {
+    icuCorps.innerHTML = "<p>Chargement…</p>";
+    try {
+      const r = await fetch(`data/icu/zooms/${slug}.html`);
+      if (!r.ok) throw new Error(r.status);
+      icuCache[slug] = await r.text();
+    } catch (e) {
+      icuCorps.innerHTML = "<p>Zoom indisponible pour le moment.</p>";
+      return;
+    }
+  }
+  if (icuOn === c) afficherIcu(icuCache[slug]);        // l'utilisateur n'a pas cliqué ailleurs entre-temps
+}
+svg.querySelectorAll(".icu").forEach(c => c.addEventListener("click", ev => { ev.stopPropagation(); ouvrirIcu(c); }));
+document.getElementById("icu-fermer").addEventListener("click", fermerIcu);
+document.addEventListener("keydown", e => { if (e.key === "Escape") fermerIcu(); });
+document.getElementById("t-icu").addEventListener("change", e => { if (!e.target.checked) fermerIcu(); });
 
 // État initial : une fiche remplie plutôt qu'un panneau vide
 showDept(svg.querySelector('.dep[data-code="33"]'));

@@ -1,0 +1,890 @@
+{
+ "meta": {
+  "source": "Cerema, LCZ 2022-2023 (Licence Ouverte 2.0)",
+  "methode": "LCZ 1-3 + LCZ 4-6 à ≤ 15 m, enveloppe convexe par îlot",
+  "ilot_min_ha": 10.0,
+  "manquants": []
+ },
+ "territoires": {
+  "ajaccio": {
+   "nom": "Ajaccio",
+   "lon": 8.7386,
+   "lat": 41.9192,
+   "icu_km2": 3.237,
+   "ilots": 4,
+   "commune": "Ajaccio",
+   "commune_km2": 83.08,
+   "territoire_km2": 1476.9
+  },
+  "albi": {
+   "nom": "Albi",
+   "lon": 2.1464,
+   "lat": 43.9289,
+   "icu_km2": 5.782,
+   "ilots": 7,
+   "commune": "Albi",
+   "commune_km2": 45.01,
+   "territoire_km2": 1339.89
+  },
+  "amiens": {
+   "nom": "Amiens",
+   "lon": 2.2958,
+   "lat": 49.8941,
+   "icu_km2": 9.428,
+   "ilots": 17,
+   "commune": "Amiens",
+   "commune_km2": 50.44,
+   "territoire_km2": 2451.53
+  },
+  "angers": {
+   "nom": "Angers",
+   "lon": -0.5632,
+   "lat": 47.4784,
+   "icu_km2": 11.441,
+   "ilots": 26,
+   "commune": "Angers",
+   "commune_km2": 44.3,
+   "territoire_km2": 2308.64
+  },
+  "angouleme": {
+   "nom": "Angoulême",
+   "lon": 0.1562,
+   "lat": 45.6484,
+   "icu_km2": 6.531,
+   "ilots": 13,
+   "commune": "Angoulême",
+   "commune_km2": 21.69,
+   "territoire_km2": 2139.8
+  },
+  "annecy": {
+   "nom": "Annecy",
+   "lon": 6.1294,
+   "lat": 45.8992,
+   "icu_km2": 3.118,
+   "ilots": 8,
+   "commune": "Annecy",
+   "commune_km2": 69.65,
+   "territoire_km2": 1189.19
+  },
+  "annemasse": {
+   "nom": "Annemasse",
+   "lon": 6.2342,
+   "lat": 46.1934,
+   "icu_km2": 0.879,
+   "ilots": 2,
+   "commune": "Annemasse",
+   "commune_km2": 4.95,
+   "territoire_km2": 77.8
+  },
+  "arles": {
+   "nom": "Arles",
+   "lon": 4.6278,
+   "lat": 43.6766,
+   "icu_km2": 9.569,
+   "ilots": 22,
+   "commune": "Arles",
+   "commune_km2": 757.7,
+   "territoire_km2": 2757.54
+  },
+  "arras": {
+   "nom": "Arras",
+   "lon": 2.7775,
+   "lat": 50.291,
+   "icu_km2": 3.335,
+   "ilots": 6,
+   "commune": "Arras",
+   "commune_km2": 11.95,
+   "territoire_km2": 1077.61
+  },
+  "avignon": {
+   "nom": "Avignon",
+   "lon": 4.8055,
+   "lat": 43.9493,
+   "icu_km2": 15.785,
+   "ilots": 35,
+   "commune": "Avignon",
+   "commune_km2": 64.91,
+   "territoire_km2": 870.12
+  },
+  "bayonne": {
+   "nom": "Bayonne",
+   "lon": -1.4748,
+   "lat": 43.4929,
+   "icu_km2": 6.494,
+   "ilots": 12,
+   "commune": "Bayonne",
+   "commune_km2": 25.83,
+   "territoire_km2": 1027.55
+  },
+  "beauvais": {
+   "nom": "Beauvais",
+   "lon": 2.0807,
+   "lat": 49.4295,
+   "icu_km2": 1.286,
+   "ilots": 4,
+   "commune": "Beauvais",
+   "commune_km2": 33.07,
+   "territoire_km2": 1313.27
+  },
+  "belfort": {
+   "nom": "Belfort",
+   "lon": 6.8628,
+   "lat": 47.638,
+   "icu_km2": 2.763,
+   "ilots": 5,
+   "commune": "Belfort",
+   "commune_km2": 17.21,
+   "territoire_km2": 655.5
+  },
+  "besancon": {
+   "nom": "Besançon",
+   "lon": 6.0241,
+   "lat": 47.2378,
+   "icu_km2": 2.969,
+   "ilots": 8,
+   "commune": "Besançon",
+   "commune_km2": 65.15,
+   "territoire_km2": 2385.83
+  },
+  "beziers": {
+   "nom": "Béziers",
+   "lon": 3.2158,
+   "lat": 43.3442,
+   "icu_km2": 15.577,
+   "ilots": 33,
+   "commune": "Béziers",
+   "commune_km2": 95.75,
+   "territoire_km2": 852.06
+  },
+  "bordeaux": {
+   "nom": "Bordeaux",
+   "lon": -0.5792,
+   "lat": 44.8378,
+   "icu_km2": 38.873,
+   "ilots": 48,
+   "commune": "Bordeaux",
+   "commune_km2": 49.72,
+   "territoire_km2": 5550.45
+  },
+  "boulogne-sur-mer": {
+   "nom": "Boulogne-sur-Mer",
+   "lon": 1.6147,
+   "lat": 50.7264,
+   "icu_km2": 7.224,
+   "ilots": 8,
+   "commune": "Boulogne-sur-Mer",
+   "commune_km2": 7.78,
+   "territoire_km2": 686.9
+  },
+  "bourges": {
+   "nom": "Bourges",
+   "lon": 2.3988,
+   "lat": 47.081,
+   "icu_km2": 4.562,
+   "ilots": 10,
+   "commune": "Bourges",
+   "commune_km2": 68.53,
+   "territoire_km2": 2498.91
+  },
+  "brest": {
+   "nom": "Brest",
+   "lon": -4.4861,
+   "lat": 48.3904,
+   "icu_km2": 8.987,
+   "ilots": 18,
+   "commune": "Brest",
+   "commune_km2": 49.14,
+   "territoire_km2": 1351.96
+  },
+  "brive-la-gaillarde": {
+   "nom": "Brive-la-Gaillarde",
+   "lon": 1.5331,
+   "lat": 45.1589,
+   "icu_km2": 3.307,
+   "ilots": 5,
+   "commune": "Brive-la-Gaillarde",
+   "commune_km2": 48.47,
+   "territoire_km2": 1323.62
+  },
+  "caen": {
+   "nom": "Caen",
+   "lon": -0.3707,
+   "lat": 49.1829,
+   "icu_km2": 4.509,
+   "ilots": 18,
+   "commune": "Caen",
+   "commune_km2": 25.72,
+   "territoire_km2": 2263.28
+  },
+  "calais": {
+   "nom": "Calais",
+   "lon": 1.8587,
+   "lat": 50.9513,
+   "icu_km2": 6.192,
+   "ilots": 10,
+   "commune": "Calais",
+   "commune_km2": 33.46,
+   "territoire_km2": 504.25
+  },
+  "cannes": {
+   "nom": "Cannes",
+   "lon": 7.0174,
+   "lat": 43.5528,
+   "icu_km2": 8.796,
+   "ilots": 6,
+   "commune": "Cannes",
+   "commune_km2": 20.98,
+   "territoire_km2": 201.48
+  },
+  "chalon-sur-saone": {
+   "nom": "Chalon-sur-Saône",
+   "lon": 4.8539,
+   "lat": 46.7808,
+   "icu_km2": 3.593,
+   "ilots": 9,
+   "commune": "Chalon-sur-Saône",
+   "commune_km2": 15.29,
+   "territoire_km2": 1559.87
+  },
+  "chalons-en-champagne": {
+   "nom": "Châlons-en-Champagne",
+   "lon": 4.3631,
+   "lat": 48.9566,
+   "icu_km2": 2.634,
+   "ilots": 4,
+   "commune": "Châlons-en-Champagne",
+   "commune_km2": 26.07,
+   "territoire_km2": 1526.3
+  },
+  "chambery": {
+   "nom": "Chambéry",
+   "lon": 5.9178,
+   "lat": 45.5646,
+   "icu_km2": 2.987,
+   "ilots": 3,
+   "commune": "Chambéry",
+   "commune_km2": 21.2,
+   "territoire_km2": 1015.98
+  },
+  "charleville-mezieres": {
+   "nom": "Charleville-Mézières",
+   "lon": 4.7263,
+   "lat": 49.7621,
+   "icu_km2": 4.407,
+   "ilots": 12,
+   "commune": "Charleville-Mézières",
+   "commune_km2": 31.81,
+   "territoire_km2": 1355.28
+  },
+  "chartres": {
+   "nom": "Chartres",
+   "lon": 1.489,
+   "lat": 48.4439,
+   "icu_km2": 1.707,
+   "ilots": 4,
+   "commune": "Chartres",
+   "commune_km2": 16.95,
+   "territoire_km2": 1612.83
+  },
+  "chateauroux": {
+   "nom": "Châteauroux",
+   "lon": 1.6913,
+   "lat": 46.8103,
+   "icu_km2": 4.491,
+   "ilots": 8,
+   "commune": "Châteauroux",
+   "commune_km2": 25.46,
+   "territoire_km2": 2606.23
+  },
+  "cherbourg": {
+   "nom": "Cherbourg",
+   "lon": -1.6222,
+   "lat": 49.6337,
+   "icu_km2": 3.095,
+   "ilots": 7,
+   "commune": "Cherbourg-en-Cotentin",
+   "commune_km2": 68.78,
+   "territoire_km2": 907.12
+  },
+  "cholet": {
+   "nom": "Cholet",
+   "lon": -0.8786,
+   "lat": 47.06,
+   "icu_km2": 4.862,
+   "ilots": 15,
+   "commune": "Cholet",
+   "commune_km2": 87.47,
+   "territoire_km2": 5465.03
+  },
+  "clermont-ferrand": {
+   "nom": "Clermont-Ferrand",
+   "lon": 3.087,
+   "lat": 45.7772,
+   "icu_km2": 21.847,
+   "ilots": 49,
+   "commune": "Clermont-Ferrand",
+   "commune_km2": 43.05,
+   "territoire_km2": 2658.15
+  },
+  "colmar": {
+   "nom": "Colmar",
+   "lon": 7.3585,
+   "lat": 48.0794,
+   "icu_km2": 8.941,
+   "ilots": 29,
+   "commune": "Colmar",
+   "commune_km2": 66.48,
+   "territoire_km2": 1017.8
+  },
+  "compiegne": {
+   "nom": "Compiègne",
+   "lon": 2.8261,
+   "lat": 49.4179,
+   "icu_km2": 2.078,
+   "ilots": 4,
+   "commune": "Compiègne",
+   "commune_km2": 53.15,
+   "territoire_km2": 988.8
+  },
+  "creil": {
+   "nom": "Creil",
+   "lon": 2.4747,
+   "lat": 49.2597,
+   "icu_km2": 1.736,
+   "ilots": 5,
+   "commune": "Creil",
+   "commune_km2": 11.06,
+   "territoire_km2": 297.48
+  },
+  "dijon": {
+   "nom": "Dijon",
+   "lon": 5.0415,
+   "lat": 47.322,
+   "icu_km2": 7.37,
+   "ilots": 15,
+   "commune": "Dijon",
+   "commune_km2": 41.66,
+   "territoire_km2": 3852.25
+  },
+  "douai": {
+   "nom": "Douai",
+   "lon": 3.08,
+   "lat": 50.3714,
+   "icu_km2": 3.75,
+   "ilots": 9,
+   "commune": "Douai",
+   "commune_km2": 16.96,
+   "territoire_km2": 452.91
+  },
+  "dunkerque": {
+   "nom": "Dunkerque",
+   "lon": 2.3768,
+   "lat": 51.0343,
+   "icu_km2": 12.834,
+   "ilots": 28,
+   "commune": "Dunkerque",
+   "commune_km2": 43.0,
+   "territoire_km2": 913.98
+  },
+  "evreux": {
+   "nom": "Évreux",
+   "lon": 1.1508,
+   "lat": 49.027,
+   "icu_km2": 2.138,
+   "ilots": 4,
+   "commune": "Évreux",
+   "commune_km2": 26.35,
+   "territoire_km2": 1265.14
+  },
+  "frejus": {
+   "nom": "Fréjus",
+   "lon": 6.737,
+   "lat": 43.433,
+   "icu_km2": 2.518,
+   "ilots": 10,
+   "commune": "Fréjus",
+   "commune_km2": 105.01,
+   "territoire_km2": 444.65
+  },
+  "grenoble": {
+   "nom": "Grenoble",
+   "lon": 5.7245,
+   "lat": 45.1885,
+   "icu_km2": 12.17,
+   "ilots": 28,
+   "commune": "Grenoble",
+   "commune_km2": 18.56,
+   "territoire_km2": 2657.08
+  },
+  "henin-carvin": {
+   "nom": "Hénin-Carvin",
+   "lon": 2.9506,
+   "lat": 50.4219,
+   "icu_km2": 4.106,
+   "ilots": 8,
+   "commune": "Hénin-Beaumont",
+   "commune_km2": 20.78,
+   "territoire_km2": 115.61
+  },
+  "la-roche-sur-yon": {
+   "nom": "La Roche-sur-Yon",
+   "lon": -1.426,
+   "lat": 46.6705,
+   "icu_km2": 3.606,
+   "ilots": 8,
+   "commune": "Roche-sur-Yon",
+   "commune_km2": 87.82,
+   "territoire_km2": 3181.43
+  },
+  "la-rochelle": {
+   "nom": "La Rochelle",
+   "lon": -1.1511,
+   "lat": 46.1603,
+   "icu_km2": 10.602,
+   "ilots": 28,
+   "commune": "Rochelle",
+   "commune_km2": 31.62,
+   "territoire_km2": 1110.93
+  },
+  "le-havre": {
+   "nom": "Le Havre",
+   "lon": 0.1079,
+   "lat": 49.4944,
+   "icu_km2": 9.76,
+   "ilots": 13,
+   "commune": "Havre",
+   "commune_km2": 57.43,
+   "territoire_km2": 767.05
+  },
+  "le-mans": {
+   "nom": "Le Mans",
+   "lon": 0.1996,
+   "lat": 48.0061,
+   "icu_km2": 7.516,
+   "ilots": 14,
+   "commune": "Mans",
+   "commune_km2": 52.69,
+   "territoire_km2": 2238.61
+  },
+  "lens-lievin": {
+   "nom": "Lens-Liévin",
+   "lon": 2.8277,
+   "lat": 50.4329,
+   "icu_km2": 3.83,
+   "ilots": 15,
+   "commune": "Lens",
+   "commune_km2": 11.71,
+   "territoire_km2": 253.44
+  },
+  "lille": {
+   "nom": "Lille",
+   "lon": 3.0573,
+   "lat": 50.6292,
+   "icu_km2": 76.16,
+   "ilots": 106,
+   "commune": "Lille",
+   "commune_km2": 35.0,
+   "territoire_km2": 1448.17
+  },
+  "limoges": {
+   "nom": "Limoges",
+   "lon": 1.2611,
+   "lat": 45.8336,
+   "icu_km2": 7.0,
+   "ilots": 6,
+   "commune": "Limoges",
+   "commune_km2": 79.64,
+   "territoire_km2": 3172.26
+  },
+  "lorient": {
+   "nom": "Lorient",
+   "lon": -3.37,
+   "lat": 47.7483,
+   "icu_km2": 6.062,
+   "ilots": 16,
+   "commune": "Lorient",
+   "commune_km2": 14.82,
+   "territoire_km2": 1129.9
+  },
+  "lyon": {
+   "nom": "Lyon",
+   "lon": 4.8357,
+   "lat": 45.764,
+   "icu_km2": 52.858,
+   "ilots": 88,
+   "commune": "Lyon",
+   "commune_km2": 47.91,
+   "territoire_km2": 3663.44
+  },
+  "marseille": {
+   "nom": "Marseille",
+   "lon": 5.3698,
+   "lat": 43.2965,
+   "icu_km2": 57.943,
+   "ilots": 114,
+   "commune": "Marseille",
+   "commune_km2": 238.47,
+   "territoire_km2": 4263.38
+  },
+  "martigues": {
+   "nom": "Martigues",
+   "lon": 5.0476,
+   "lat": 43.4053,
+   "icu_km2": 2.329,
+   "ilots": 8,
+   "commune": "Martigues",
+   "commune_km2": 74.48,
+   "territoire_km2": 206.34
+  },
+  "melun": {
+   "nom": "Melun",
+   "lon": 2.6608,
+   "lat": 48.5394,
+   "icu_km2": 2.137,
+   "ilots": 8,
+   "commune": "Melun",
+   "commune_km2": 8.02,
+   "territoire_km2": 449.38
+  },
+  "metz": {
+   "nom": "Metz",
+   "lon": 6.1757,
+   "lat": 49.1193,
+   "icu_km2": 6.922,
+   "ilots": 21,
+   "commune": "Metz",
+   "commune_km2": 41.75,
+   "territoire_km2": 1768.41
+  },
+  "montauban": {
+   "nom": "Montauban",
+   "lon": 1.355,
+   "lat": 44.0176,
+   "icu_km2": 3.229,
+   "ilots": 5,
+   "commune": "Montauban",
+   "commune_km2": 135.96,
+   "territoire_km2": 1511.21
+  },
+  "montbeliard": {
+   "nom": "Montbéliard",
+   "lon": 6.7986,
+   "lat": 47.51,
+   "icu_km2": 2.125,
+   "ilots": 6,
+   "commune": "Montbéliard",
+   "commune_km2": 15.02,
+   "territoire_km2": 1229.09
+  },
+  "montpellier": {
+   "nom": "Montpellier",
+   "lon": 3.8767,
+   "lat": 43.6108,
+   "icu_km2": 30.209,
+   "ilots": 78,
+   "commune": "Montpellier",
+   "commune_km2": 57.11,
+   "territoire_km2": 2240.66
+  },
+  "mulhouse": {
+   "nom": "Mulhouse",
+   "lon": 7.3359,
+   "lat": 47.7508,
+   "icu_km2": 11.564,
+   "ilots": 27,
+   "commune": "Mulhouse",
+   "commune_km2": 22.38,
+   "territoire_km2": 1296.17
+  },
+  "nancy": {
+   "nom": "Nancy",
+   "lon": 6.1844,
+   "lat": 48.6921,
+   "icu_km2": 14.301,
+   "ilots": 44,
+   "commune": "Nancy",
+   "commune_km2": 14.95,
+   "territoire_km2": 2832.89
+  },
+  "nantes": {
+   "nom": "Nantes",
+   "lon": -1.5536,
+   "lat": 47.2184,
+   "icu_km2": 18.734,
+   "ilots": 57,
+   "commune": "Nantes",
+   "commune_km2": 65.79,
+   "territoire_km2": 3159.72
+  },
+  "narbonne": {
+   "nom": "Narbonne",
+   "lon": 3.0042,
+   "lat": 43.184,
+   "icu_km2": 13.91,
+   "ilots": 42,
+   "commune": "Narbonne",
+   "commune_km2": 175.0,
+   "territoire_km2": 3103.63
+  },
+  "nice": {
+   "nom": "Nice",
+   "lon": 7.262,
+   "lat": 43.7102,
+   "icu_km2": 26.563,
+   "ilots": 28,
+   "commune": "Nice",
+   "commune_km2": 73.95,
+   "territoire_km2": 3075.03
+  },
+  "nimes": {
+   "nom": "Nîmes",
+   "lon": 4.3601,
+   "lat": 43.8367,
+   "icu_km2": 16.879,
+   "ilots": 36,
+   "commune": "Nîmes",
+   "commune_km2": 161.29,
+   "territoire_km2": 1505.93
+  },
+  "niort": {
+   "nom": "Niort",
+   "lon": -0.4588,
+   "lat": 46.3237,
+   "icu_km2": 5.344,
+   "ilots": 14,
+   "commune": "Niort",
+   "commune_km2": 68.37,
+   "territoire_km2": 1785.86
+  },
+  "orleans": {
+   "nom": "Orléans",
+   "lon": 1.9093,
+   "lat": 47.903,
+   "icu_km2": 7.76,
+   "ilots": 22,
+   "commune": "Orléans",
+   "commune_km2": 27.6,
+   "territoire_km2": 2917.5
+  },
+  "paris": {
+   "nom": "Paris",
+   "lon": 2.3522,
+   "lat": 48.8566,
+   "icu_km2": 254.38,
+   "ilots": 409,
+   "commune": "Paris",
+   "commune_km2": 105.33,
+   "territoire_km2": 12095.28
+  },
+  "pau": {
+   "nom": "Pau",
+   "lon": -0.3708,
+   "lat": 43.2951,
+   "icu_km2": 4.696,
+   "ilots": 6,
+   "commune": "Pau",
+   "commune_km2": 31.56,
+   "territoire_km2": 2020.12
+  },
+  "perpignan": {
+   "nom": "Perpignan",
+   "lon": 2.8948,
+   "lat": 42.6887,
+   "icu_km2": 27.996,
+   "ilots": 75,
+   "commune": "Perpignan",
+   "commune_km2": 68.31,
+   "territoire_km2": 1832.34
+  },
+  "poitiers": {
+   "nom": "Poitiers",
+   "lon": 0.3404,
+   "lat": 46.5802,
+   "icu_km2": 4.708,
+   "ilots": 10,
+   "commune": "Poitiers",
+   "commune_km2": 42.42,
+   "territoire_km2": 2499.69
+  },
+  "quimper": {
+   "nom": "Quimper",
+   "lon": -4.1024,
+   "lat": 47.996,
+   "icu_km2": 1.434,
+   "ilots": 7,
+   "commune": "Quimper",
+   "commune_km2": 84.45,
+   "territoire_km2": 1216.71
+  },
+  "reims": {
+   "nom": "Reims",
+   "lon": 4.0317,
+   "lat": 49.2583,
+   "icu_km2": 14.027,
+   "ilots": 22,
+   "commune": "Reims",
+   "commune_km2": 46.92,
+   "territoire_km2": 2432.19
+  },
+  "rennes": {
+   "nom": "Rennes",
+   "lon": -1.6778,
+   "lat": 48.1173,
+   "icu_km2": 8.21,
+   "ilots": 27,
+   "commune": "Rennes",
+   "commune_km2": 50.38,
+   "territoire_km2": 3815.65
+  },
+  "roanne": {
+   "nom": "Roanne",
+   "lon": 4.0683,
+   "lat": 46.0367,
+   "icu_km2": 5.177,
+   "ilots": 7,
+   "commune": "Roanne",
+   "commune_km2": 16.07,
+   "territoire_km2": 1231.36
+  },
+  "rouen": {
+   "nom": "Rouen",
+   "lon": 1.0999,
+   "lat": 49.4432,
+   "icu_km2": 15.525,
+   "ilots": 29,
+   "commune": "Rouen",
+   "commune_km2": 21.54,
+   "territoire_km2": 2873.68
+  },
+  "saint-brieuc": {
+   "nom": "Saint-Brieuc",
+   "lon": -2.7603,
+   "lat": 48.5136,
+   "icu_km2": 2.842,
+   "ilots": 6,
+   "commune": "Saint-Brieuc",
+   "commune_km2": 19.43,
+   "territoire_km2": 1152.71
+  },
+  "saint-etienne": {
+   "nom": "Saint-Étienne",
+   "lon": 4.3872,
+   "lat": 45.4397,
+   "icu_km2": 21.782,
+   "ilots": 44,
+   "commune": "Saint-Étienne",
+   "commune_km2": 79.98,
+   "territoire_km2": 1807.73
+  },
+  "saint-nazaire": {
+   "nom": "Saint-Nazaire",
+   "lon": -2.2138,
+   "lat": 47.2735,
+   "icu_km2": 7.176,
+   "ilots": 17,
+   "commune": "Saint-Nazaire",
+   "commune_km2": 50.04,
+   "territoire_km2": 1069.6
+  },
+  "saint-quentin": {
+   "nom": "Saint-Quentin",
+   "lon": 3.2876,
+   "lat": 49.8465,
+   "icu_km2": 7.648,
+   "ilots": 5,
+   "commune": "Saint-Quentin",
+   "commune_km2": 22.89,
+   "territoire_km2": 994.83
+  },
+  "strasbourg": {
+   "nom": "Strasbourg",
+   "lon": 7.7521,
+   "lat": 48.5734,
+   "icu_km2": 28.653,
+   "ilots": 87,
+   "commune": "Strasbourg",
+   "commune_km2": 78.11,
+   "territoire_km2": 2036.72
+  },
+  "tarbes": {
+   "nom": "Tarbes",
+   "lon": 0.0781,
+   "lat": 43.2328,
+   "icu_km2": 4.264,
+   "ilots": 5,
+   "commune": "Tarbes",
+   "commune_km2": 15.38,
+   "territoire_km2": 1043.86
+  },
+  "toulon": {
+   "nom": "Toulon",
+   "lon": 5.928,
+   "lat": 43.1242,
+   "icu_km2": 21.5,
+   "ilots": 34,
+   "commune": "Toulon",
+   "commune_km2": 44.07,
+   "territoire_km2": 1073.67
+  },
+  "toulouse": {
+   "nom": "Toulouse",
+   "lon": 1.4442,
+   "lat": 43.6047,
+   "icu_km2": 25.387,
+   "ilots": 45,
+   "commune": "Toulouse",
+   "commune_km2": 118.17,
+   "territoire_km2": 5250.0
+  },
+  "tours": {
+   "nom": "Tours",
+   "lon": 0.6848,
+   "lat": 47.3941,
+   "icu_km2": 9.759,
+   "ilots": 14,
+   "commune": "Tours",
+   "commune_km2": 33.41,
+   "territoire_km2": 2846.02
+  },
+  "troyes": {
+   "nom": "Troyes",
+   "lon": 4.0744,
+   "lat": 48.2973,
+   "icu_km2": 4.023,
+   "ilots": 12,
+   "commune": "Troyes",
+   "commune_km2": 13.33,
+   "territoire_km2": 2607.28
+  },
+  "valence": {
+   "nom": "Valence",
+   "lon": 4.8924,
+   "lat": 44.9334,
+   "icu_km2": 5.602,
+   "ilots": 12,
+   "commune": "Valence",
+   "commune_km2": 36.8,
+   "territoire_km2": 908.57
+  },
+  "valenciennes": {
+   "nom": "Valenciennes",
+   "lon": 3.5235,
+   "lat": 50.357,
+   "icu_km2": 7.648,
+   "ilots": 18,
+   "commune": "Valenciennes",
+   "commune_km2": 13.9,
+   "territoire_km2": 787.38
+  },
+  "vannes": {
+   "nom": "Vannes",
+   "lon": -2.7608,
+   "lat": 47.6582,
+   "icu_km2": 2.467,
+   "ilots": 6,
+   "commune": "Vannes",
+   "commune_km2": 32.83,
+   "territoire_km2": 1210.8
+  }
+ }
+}

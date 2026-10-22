@@ -1,0 +1,442 @@
+{
+"ajaccio": {
+"nom": "Ajaccio",
+"lat": 41.9192,
+"lon": 8.7386
+},
+"albi": {
+"nom": "Albi",
+"lat": 43.9289,
+"lon": 2.1464
+},
+"amiens": {
+"nom": "Amiens",
+"lat": 49.8941,
+"lon": 2.2958
+},
+"angers": {
+"nom": "Angers",
+"lat": 47.4784,
+"lon": -0.5632
+},
+"angouleme": {
+"nom": "Angoulême",
+"lat": 45.6484,
+"lon": 0.1562
+},
+"annecy": {
+"nom": "Annecy",
+"lat": 45.8992,
+"lon": 6.1294
+},
+"annemasse": {
+"nom": "Annemasse",
+"lat": 46.1934,
+"lon": 6.2342
+},
+"arles": {
+"nom": "Arles",
+"lat": 43.6766,
+"lon": 4.6278
+},
+"arras": {
+"nom": "Arras",
+"lat": 50.291,
+"lon": 2.7775
+},
+"avignon": {
+"nom": "Avignon",
+"lat": 43.9493,
+"lon": 4.8055
+},
+"bayonne": {
+"nom": "Bayonne",
+"lat": 43.4929,
+"lon": -1.4748
+},
+"beauvais": {
+"nom": "Beauvais",
+"lat": 49.4295,
+"lon": 2.0807
+},
+"belfort": {
+"nom": "Belfort",
+"lat": 47.638,
+"lon": 6.8628
+},
+"besancon": {
+"nom": "Besançon",
+"lat": 47.2378,
+"lon": 6.0241
+},
+"beziers": {
+"nom": "Béziers",
+"lat": 43.3442,
+"lon": 3.2158
+},
+"bordeaux": {
+"nom": "Bordeaux",
+"lat": 44.8378,
+"lon": -0.5792
+},
+"boulogne-sur-mer": {
+"nom": "Boulogne-sur-Mer",
+"lat": 50.7264,
+"lon": 1.6147
+},
+"bourges": {
+"nom": "Bourges",
+"lat": 47.081,
+"lon": 2.3988
+},
+"brest": {
+"nom": "Brest",
+"lat": 48.3904,
+"lon": -4.4861
+},
+"brive-la-gaillarde": {
+"nom": "Brive-la-Gaillarde",
+"lat": 45.1589,
+"lon": 1.5331
+},
+"caen": {
+"nom": "Caen",
+"lat": 49.1829,
+"lon": -0.3707
+},
+"calais": {
+"nom": "Calais",
+"lat": 50.9513,
+"lon": 1.8587
+},
+"cannes": {
+"nom": "Cannes",
+"lat": 43.5528,
+"lon": 7.0174
+},
+"chalon-sur-saone": {
+"nom": "Chalon-sur-Saône",
+"lat": 46.7808,
+"lon": 4.8539
+},
+"chalons-en-champagne": {
+"nom": "Châlons-en-Champagne",
+"lat": 48.9566,
+"lon": 4.3631
+},
+"chambery": {
+"nom": "Chambéry",
+"lat": 45.5646,
+"lon": 5.9178
+},
+"charleville-mezieres": {
+"nom": "Charleville-Mézières",
+"lat": 49.7621,
+"lon": 4.7263
+},
+"chartres": {
+"nom": "Chartres",
+"lat": 48.4439,
+"lon": 1.489
+},
+"chateauroux": {
+"nom": "Châteauroux",
+"lat": 46.8103,
+"lon": 1.6913
+},
+"cherbourg": {
+"nom": "Cherbourg",
+"lat": 49.6337,
+"lon": -1.6222
+},
+"cholet": {
+"nom": "Cholet",
+"lat": 47.06,
+"lon": -0.8786
+},
+"clermont-ferrand": {
+"nom": "Clermont-Ferrand",
+"lat": 45.7772,
+"lon": 3.087
+},
+"colmar": {
+"nom": "Colmar",
+"lat": 48.0794,
+"lon": 7.3585
+},
+"compiegne": {
+"nom": "Compiègne",
+"lat": 49.4179,
+"lon": 2.8261
+},
+"creil": {
+"nom": "Creil",
+"lat": 49.2597,
+"lon": 2.4747
+},
+"dijon": {
+"nom": "Dijon",
+"lat": 47.322,
+"lon": 5.0415
+},
+"douai": {
+"nom": "Douai",
+"lat": 50.3714,
+"lon": 3.08
+},
+"dunkerque": {
+"nom": "Dunkerque",
+"lat": 51.0343,
+"lon": 2.3768
+},
+"evreux": {
+"nom": "Évreux",
+"lat": 49.027,
+"lon": 1.1508
+},
+"frejus": {
+"nom": "Fréjus",
+"lat": 43.433,
+"lon": 6.737
+},
+"grenoble": {
+"nom": "Grenoble",
+"lat": 45.1885,
+"lon": 5.7245
+},
+"henin-carvin": {
+"nom": "Hénin-Carvin",
+"lat": 50.4219,
+"lon": 2.9506
+},
+"la-roche-sur-yon": {
+"nom": "La Roche-sur-Yon",
+"lat": 46.6705,
+"lon": -1.426
+},
+"la-rochelle": {
+"nom": "La Rochelle",
+"lat": 46.1603,
+"lon": -1.1511
+},
+"le-havre": {
+"nom": "Le Havre",
+"lat": 49.4944,
+"lon": 0.1079
+},
+"le-mans": {
+"nom": "Le Mans",
+"lat": 48.0061,
+"lon": 0.1996
+},
+"lens-lievin": {
+"nom": "Lens-Liévin",
+"lat": 50.4329,
+"lon": 2.8277
+},
+"lille": {
+"nom": "Lille",
+"lat": 50.6292,
+"lon": 3.0573
+},
+"limoges": {
+"nom": "Limoges",
+"lat": 45.8336,
+"lon": 1.2611
+},
+"lorient": {
+"nom": "Lorient",
+"lat": 47.7483,
+"lon": -3.37
+},
+"lyon": {
+"nom": "Lyon",
+"lat": 45.764,
+"lon": 4.8357
+},
+"marseille": {
+"nom": "Marseille",
+"lat": 43.2965,
+"lon": 5.3698
+},
+"martigues": {
+"nom": "Martigues",
+"lat": 43.4053,
+"lon": 5.0476
+},
+"melun": {
+"nom": "Melun",
+"lat": 48.5394,
+"lon": 2.6608
+},
+"metz": {
+"nom": "Metz",
+"lat": 49.1193,
+"lon": 6.1757
+},
+"montauban": {
+"nom": "Montauban",
+"lat": 44.0176,
+"lon": 1.355
+},
+"montbeliard": {
+"nom": "Montbéliard",
+"lat": 47.51,
+"lon": 6.7986
+},
+"montpellier": {
+"nom": "Montpellier",
+"lat": 43.6108,
+"lon": 3.8767
+},
+"mulhouse": {
+"nom": "Mulhouse",
+"lat": 47.7508,
+"lon": 7.3359
+},
+"nancy": {
+"nom": "Nancy",
+"lat": 48.6921,
+"lon": 6.1844
+},
+"nantes": {
+"nom": "Nantes",
+"lat": 47.2184,
+"lon": -1.5536
+},
+"narbonne": {
+"nom": "Narbonne",
+"lat": 43.184,
+"lon": 3.0042
+},
+"nice": {
+"nom": "Nice",
+"lat": 43.7102,
+"lon": 7.262
+},
+"nimes": {
+"nom": "Nîmes",
+"lat": 43.8367,
+"lon": 4.3601
+},
+"niort": {
+"nom": "Niort",
+"lat": 46.3237,
+"lon": -0.4588
+},
+"orleans": {
+"nom": "Orléans",
+"lat": 47.903,
+"lon": 1.9093
+},
+"paris": {
+"nom": "Paris",
+"lat": 48.8566,
+"lon": 2.3522
+},
+"pau": {
+"nom": "Pau",
+"lat": 43.2951,
+"lon": -0.3708
+},
+"perpignan": {
+"nom": "Perpignan",
+"lat": 42.6887,
+"lon": 2.8948
+},
+"poitiers": {
+"nom": "Poitiers",
+"lat": 46.5802,
+"lon": 0.3404
+},
+"quimper": {
+"nom": "Quimper",
+"lat": 47.996,
+"lon": -4.1024
+},
+"reims": {
+"nom": "Reims",
+"lat": 49.2583,
+"lon": 4.0317
+},
+"rennes": {
+"nom": "Rennes",
+"lat": 48.1173,
+"lon": -1.6778
+},
+"roanne": {
+"nom": "Roanne",
+"lat": 46.0367,
+"lon": 4.0683
+},
+"rouen": {
+"nom": "Rouen",
+"lat": 49.4432,
+"lon": 1.0999
+},
+"saint-brieuc": {
+"nom": "Saint-Brieuc",
+"lat": 48.5136,
+"lon": -2.7603
+},
+"saint-etienne": {
+"nom": "Saint-Étienne",
+"lat": 45.4397,
+"lon": 4.3872
+},
+"saint-nazaire": {
+"nom": "Saint-Nazaire",
+"lat": 47.2735,
+"lon": -2.2138
+},
+"saint-quentin": {
+"nom": "Saint-Quentin",
+"lat": 49.8465,
+"lon": 3.2876
+},
+"strasbourg": {
+"nom": "Strasbourg",
+"lat": 48.5734,
+"lon": 7.7521
+},
+"tarbes": {
+"nom": "Tarbes",
+"lat": 43.2328,
+"lon": 0.0781
+},
+"toulon": {
+"nom": "Toulon",
+"lat": 43.1242,
+"lon": 5.928
+},
+"toulouse": {
+"nom": "Toulouse",
+"lat": 43.6047,
+"lon": 1.4442
+},
+"tours": {
+"nom": "Tours",
+"lat": 47.3941,
+"lon": 0.6848
+},
+"troyes": {
+"nom": "Troyes",
+"lat": 48.2973,
+"lon": 4.0744
+},
+"valence": {
+"nom": "Valence",
+"lat": 44.9334,
+"lon": 4.8924
+},
+"valenciennes": {
+"nom": "Valenciennes",
+"lat": 50.357,
+"lon": 3.5235
+},
+"vannes": {
+"nom": "Vannes",
+"lat": 47.6582,
+"lon": -2.7608
+}
+}

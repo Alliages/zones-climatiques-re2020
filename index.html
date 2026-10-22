@@ -298,6 +298,62 @@ footer .credit { color: var(--ink); margin-top: 6px; }
 footer .version { font-family: var(--font-mono); font-size: 12px; margin-top: 6px; }
 footer a { color: var(--accent); }
 
+
+/* ---------------- Îlots de chaleur urbains (ICU, LCZ Cerema, variante 1) ---------------- */
+:root { --icu: #d62828; --icu-bg: rgba(214, 40, 40, .28); }
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) { --icu: #ff5a4f; --icu-bg: rgba(255, 90, 79, .3); } }
+:root[data-theme="dark"] { --icu: #ff5a4f; --icu-bg: rgba(255, 90, 79, .3); }
+.layer-icu { display: none; }
+svg.show-icu .layer-icu { display: inline; }
+.icu { fill: var(--icu); fill-opacity: .72; stroke: #fff; stroke-width: 1; cursor: pointer; }
+.icu:hover, .icu.on { fill-opacity: 1; stroke: var(--ink); stroke-width: 2; }
+.map { position: relative; }
+.icu-zoom { position: absolute; top: 12px; right: 12px; width: min(380px, calc(100% - 24px));
+  background: var(--surface); border: 1px solid var(--line); border-radius: 12px;
+  box-shadow: 0 8px 28px rgba(0,0,0,.18); padding: 12px 14px; display: grid; gap: 8px; }
+.icu-zoom[hidden] { display: none; }
+@media (max-width: 860px) {   /* téléphone : encart sous la carte plutôt que par-dessus */
+  .icu-zoom { position: static; width: auto; margin-top: 12px; box-sizing: border-box; }
+}
+.icu-zoom header { display: flex; justify-content: space-between; align-items: baseline; gap: 8px; }
+.icu-zoom h3 { margin: 0; font-family: var(--font-display); font-size: 19px; }
+.icu-zoom button { border: 0; background: none; font-size: 22px; line-height: 1; color: var(--muted); cursor: pointer; padding: 0 2px; }
+.icu-zoom p { margin: 0; font-size: 13px; color: var(--muted); }
+.icu-zoom #icu-corps > svg { width: 100%; height: auto; border-radius: 8px; display: block; }
+.icu-zoom .z-fond { fill: var(--neigh); }                              /* pays voisin */
+.icu-zoom .z-vfond { fill: var(--bg); }
+.icu-zoom .mer { fill: var(--sea-shallow); }                            /* mer */
+.icu-zoom .z-commune { fill: var(--surface); stroke: var(--muted); stroke-width: .7; stroke-opacity: .7; }
+.icu-zoom .z-vcommune { fill: var(--surface); stroke: var(--muted); stroke-width: .3; stroke-opacity: .6; }
+.icu-zoom .z-ville { fill: none; stroke: var(--ink); stroke-width: 1.8; }
+.icu-zoom .z-emprise { fill: none; stroke: var(--muted); stroke-dasharray: 3 3; stroke-width: .8; }
+.icu-zoom .z-nom, .icu-zoom .z-pays { font-family: var(--font-body); font-size: 10px; fill: var(--muted);
+  text-anchor: middle; dominant-baseline: middle; paint-order: stroke; stroke: var(--surface); stroke-width: 3px; stroke-linejoin: round; }
+.icu-zoom .z-nom.main { font-size: 12px; font-weight: 700; fill: var(--ink); letter-spacing: .04em; }
+.icu-zoom .z-pays { font-size: 11px; letter-spacing: .12em; fill: var(--muted); stroke: var(--neigh); }
+.icu-zoom .z-vbord { fill: none; stroke: var(--line); }
+.icu-zoom .z-env { fill: var(--icu-bg); stroke: var(--icu); stroke-width: 1.4; stroke-dasharray: 5 3; }
+.icu-zoom .z-sel { fill: var(--icu); fill-opacity: .55; }
+.icu-zoom .z-noyau { fill: var(--icu); }
+.icu-zoom .z-venv { fill: var(--icu); }
+.icu-zoom .z-cadre { fill: none; stroke: var(--ink); stroke-width: 1.2; }
+.icu-zoom .z-echelle line { stroke: var(--ink); stroke-width: 2; }
+.icu-zoom .z-echelle text { font-size: 11px; fill: var(--ink); text-anchor: middle; font-family: var(--font-mono);
+  paint-order: stroke; stroke: var(--surface); stroke-width: 3px; }
+.icu-zoom .icu-surf { font-size: 14px; color: var(--ink); }
+.icu-zoom .icu-surf b { color: var(--muted); font-weight: 600; }
+.icu-key { display: flex; flex-wrap: wrap; gap: 4px 12px; font-size: 12px; color: var(--muted); }
+.icu-key i { display: inline-block; width: 12px; height: 12px; border-radius: 3px; vertical-align: -2px; margin-right: 4px; }
+.swatch-icu { width: 14px; height: 14px; vertical-align: -2px; margin-right: 6px; }
+.icu-zoom .z-vterr { fill: var(--surface); stroke: var(--muted); stroke-width: .6; }
+/* Repères du zoom : eau (LCZ G) et mairie de la commune centre */
+:root { --z-eau: #9cc3de; }
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) { --z-eau: #2f5878; } }
+:root[data-theme="dark"] { --z-eau: #2f5878; }
+.icu-zoom .z-eau { fill: var(--z-eau); stroke: none; }
+.icu-zoom .z-mairie { fill: var(--ink); stroke: var(--surface); stroke-width: 1; }
+.icu-zoom .z-nom.m { text-anchor: start; dominant-baseline: auto; }
+
 @media (prefers-reduced-motion: reduce) { .dep, .track, .track::after { transition: none; } }
 
 body { margin: 0; }
@@ -315,7 +371,7 @@ body { margin: 0; }
 
   <div class="layout">
     <div class="map">
-      <svg id="map" class="show-stations show-depborders show-context show-altitude show-cities" viewBox="0 0 1000 966" role="img" aria-label="Carte des zones climatiques RE2020 par département">
+      <svg id="map" class="show-icu show-stations show-depborders show-context show-altitude show-cities" viewBox="0 0 1000 966" role="img" aria-label="Carte des zones climatiques RE2020 par département">
         <defs>
           <linearGradient id="sea" x1="0" y1="0" x2="1" y2="1">
             <stop offset="0" style="stop-color: var(--sea-deep)"/>
@@ -616,6 +672,97 @@ body { margin: 0; }
 <g class="city"><circle cx="542.0" cy="803.3" r="4.2"/><text x="551.0" y="809.3" text-anchor="start">Perpignan</text></g>
 <g class="city"><circle cx="906.8" cy="873.1" r="4.2"/><text x="897.8" y="879.1" text-anchor="end">Ajaccio</text></g>
         </g>
+        <!-- Îlots de chaleur urbains : un point par territoire LCZ (Cerema) -->
+        <g class="layer-icu">
+<circle class="icu" data-slug="paris" data-nom="Paris" cx="507.8" cy="244.5" r="13.0"><title>Paris · ICU 254,4 km² (409 îlots)</title></circle>
+<circle class="icu" data-slug="lille" data-nom="Lille" cx="551.8" cy="83.7" r="8.5"><title>Lille · ICU 76,2 km² (106 îlots)</title></circle>
+<circle class="icu" data-slug="marseille" data-nom="Marseille" cx="696.3" cy="749.1" r="7.8"><title>Marseille · ICU 57,9 km² (114 îlots)</title></circle>
+<circle class="icu" data-slug="lyon" data-nom="Lyon" cx="662.9" cy="525.2" r="7.6"><title>Lyon · ICU 52,9 km² (88 îlots)</title></circle>
+<circle class="icu" data-slug="bordeaux" data-nom="Bordeaux" cx="324.6" cy="609.2" r="6.9"><title>Bordeaux · ICU 38,9 km² (48 îlots)</title></circle>
+<circle class="icu" data-slug="montpellier" data-nom="Montpellier" cx="603.0" cy="720.6" r="6.4"><title>Montpellier · ICU 30,2 km² (78 îlots)</title></circle>
+<circle class="icu" data-slug="strasbourg" data-nom="Strasbourg" cx="845.1" cy="270.2" r="6.4"><title>Strasbourg · ICU 28,7 km² (87 îlots)</title></circle>
+<circle class="icu" data-slug="perpignan" data-nom="Perpignan" cx="541.7" cy="804.3" r="6.3"><title>Perpignan · ICU 28,0 km² (75 îlots)</title></circle>
+<circle class="icu" data-slug="nice" data-nom="Nice" cx="814.5" cy="711.6" r="6.2"><title>Nice · ICU 26,6 km² (28 îlots)</title></circle>
+<circle class="icu" data-slug="toulouse" data-nom="Toulouse" cx="451.0" cy="721.2" r="6.2"><title>Toulouse · ICU 25,4 km² (45 îlots)</title></circle>
+<circle class="icu" data-slug="clermont-ferrand" data-nom="Clermont-Ferrand" cx="553.7" cy="524.0" r="5.9"><title>Clermont-Ferrand · ICU 21,8 km² (49 îlots)</title></circle>
+<circle class="icu" data-slug="saint-etienne" data-nom="Saint-Étienne" cx="634.9" cy="554.6" r="5.9"><title>Saint-Étienne · ICU 21,8 km² (44 îlots)</title></circle>
+<circle class="icu" data-slug="toulon" data-nom="Toulon" cx="731.1" cy="764.8" r="5.9"><title>Toulon · ICU 21,5 km² (34 îlots)</title></circle>
+<circle class="icu" data-slug="nantes" data-nom="Nantes" cx="263.8" cy="393.2" r="5.7"><title>Nantes · ICU 18,7 km² (57 îlots)</title></circle>
+<circle class="icu" data-slug="nimes" data-nom="Nîmes" cx="633.2" cy="700.1" r="5.6"><title>Nîmes · ICU 16,9 km² (36 îlots)</title></circle>
+<circle class="icu" data-slug="avignon" data-nom="Avignon" cx="661.0" cy="689.9" r="5.5"><title>Avignon · ICU 15,8 km² (35 îlots)</title></circle>
+<circle class="icu" data-slug="beziers" data-nom="Béziers" cx="561.7" cy="744.8" r="5.5"><title>Béziers · ICU 15,6 km² (33 îlots)</title></circle>
+<circle class="icu" data-slug="rouen" data-nom="Rouen" cx="429.5" cy="191.3" r="5.5"><title>Rouen · ICU 15,5 km² (29 îlots)</title></circle>
+<circle class="icu" data-slug="nancy" data-nom="Nancy" cx="747.1" cy="259.5" r="5.4"><title>Nancy · ICU 14,3 km² (44 îlots)</title></circle>
+<circle class="icu" data-slug="reims" data-nom="Reims" cx="612.7" cy="208.1" r="5.3"><title>Reims · ICU 14,0 km² (22 îlots)</title></circle>
+<circle class="icu" data-slug="narbonne" data-nom="Narbonne" cx="548.5" cy="759.3" r="5.3"><title>Narbonne · ICU 13,9 km² (42 îlots)</title></circle>
+<circle class="icu" data-slug="dunkerque" data-nom="Dunkerque" cx="509.3" cy="46.9" r="5.2"><title>Dunkerque · ICU 12,8 km² (28 îlots)</title></circle>
+<circle class="icu" data-slug="grenoble" data-nom="Grenoble" cx="718.4" cy="577.4" r="5.2"><title>Grenoble · ICU 12,2 km² (28 îlots)</title></circle>
+<circle class="icu" data-slug="mulhouse" data-nom="Mulhouse" cx="819.1" cy="344.9" r="5.1"><title>Mulhouse · ICU 11,6 km² (27 îlots)</title></circle>
+<circle class="icu" data-slug="angers" data-nom="Angers" cx="325.6" cy="369.6" r="5.1"><title>Angers · ICU 11,4 km² (26 îlots)</title></circle>
+<circle class="icu" data-slug="la-rochelle" data-nom="La Rochelle" cx="288.9" cy="489.2" r="5.0"><title>La Rochelle · ICU 10,6 km² (28 îlots)</title></circle>
+<circle class="icu" data-slug="le-havre" data-nom="Le Havre" cx="367.6" cy="186.7" r="5.0"><title>Le Havre · ICU 9,76 km² (13 îlots)</title></circle>
+<circle class="icu" data-slug="tours" data-nom="Tours" cx="403.6" cy="377.3" r="5.0"><title>Tours · ICU 9,76 km² (14 îlots)</title></circle>
+<circle class="icu" data-slug="arles" data-nom="Arles" cx="649.9" cy="714.6" r="4.9"><title>Arles · ICU 9,57 km² (22 îlots)</title></circle>
+<circle class="icu" data-slug="amiens" data-nom="Amiens" cx="504.2" cy="150.4" r="4.9"><title>Amiens · ICU 9,43 km² (17 îlots)</title></circle>
+<circle class="icu" data-slug="brest" data-nom="Brest" cx="80.6" cy="286.8" r="4.9"><title>Brest · ICU 8,99 km² (18 îlots)</title></circle>
+<circle class="icu" data-slug="colmar" data-nom="Colmar" cx="820.5" cy="315.1" r="4.9"><title>Colmar · ICU 8,94 km² (29 îlots)</title></circle>
+<circle class="icu" data-slug="cannes" data-nom="Cannes" cx="799.2" cy="725.9" r="4.9"><title>Cannes · ICU 8,80 km² (6 îlots)</title></circle>
+<circle class="icu" data-slug="rennes" data-nom="Rennes" cx="256.0" cy="311.6" r="4.8"><title>Rennes · ICU 8,21 km² (27 îlots)</title></circle>
+<circle class="icu" data-slug="orleans" data-nom="Orléans" cx="480.1" cy="331.1" r="4.7"><title>Orléans · ICU 7,76 km² (22 îlots)</title></circle>
+<circle class="icu" data-slug="saint-quentin" data-nom="Saint-Quentin" cx="566.2" cy="154.7" r="4.7"><title>Saint-Quentin · ICU 7,65 km² (5 îlots)</title></circle>
+<circle class="icu" data-slug="valenciennes" data-nom="Valenciennes" cx="580.9" cy="108.4" r="4.7"><title>Valenciennes · ICU 7,65 km² (18 îlots)</title></circle>
+<circle class="icu" data-slug="le-mans" data-nom="Le Mans" cx="373.3" cy="321.7" r="4.7"><title>Le Mans · ICU 7,52 km² (14 îlots)</title></circle>
+<circle class="icu" data-slug="dijon" data-nom="Dijon" cx="675.8" cy="383.8" r="4.7"><title>Dijon · ICU 7,37 km² (15 îlots)</title></circle>
+<circle class="icu" data-slug="boulogne-sur-mer" data-nom="Boulogne-sur-Mer" cx="461.7" cy="74.9" r="4.7"><title>Boulogne-sur-Mer · ICU 7,22 km² (8 îlots)</title></circle>
+<circle class="icu" data-slug="saint-nazaire" data-nom="Saint-Nazaire" cx="222.5" cy="388.2" r="4.7"><title>Saint-Nazaire · ICU 7,18 km² (17 îlots)</title></circle>
+<circle class="icu" data-slug="limoges" data-nom="Limoges" cx="439.6" cy="518.9" r="4.7"><title>Limoges · ICU 7,00 km² (6 îlots)</title></circle>
+<circle class="icu" data-slug="metz" data-nom="Metz" cx="746.6" cy="220.7" r="4.6"><title>Metz · ICU 6,92 km² (21 îlots)</title></circle>
+<circle class="icu" data-slug="angouleme" data-nom="Angoulême" cx="370.6" cy="535.7" r="4.6"><title>Angoulême · ICU 6,53 km² (13 îlots)</title></circle>
+<circle class="icu" data-slug="bayonne" data-nom="Bayonne" cx="268.7" cy="731.3" r="4.6"><title>Bayonne · ICU 6,49 km² (12 îlots)</title></circle>
+<circle class="icu" data-slug="calais" data-nom="Calais" cx="476.9" cy="54.4" r="4.6"><title>Calais · ICU 6,19 km² (10 îlots)</title></circle>
+<circle class="icu" data-slug="lorient" data-nom="Lorient" cx="150.3" cy="345.1" r="4.5"><title>Lorient · ICU 6,06 km² (16 îlots)</title></circle>
+<circle class="icu" data-slug="albi" data-nom="Albi" cx="494.9" cy="691.7" r="4.5"><title>Albi · ICU 5,78 km² (7 îlots)</title></circle>
+<circle class="icu" data-slug="valence" data-nom="Valence" cx="666.4" cy="600.6" r="4.5"><title>Valence · ICU 5,60 km² (12 îlots)</title></circle>
+<circle class="icu" data-slug="niort" data-nom="Niort" cx="332.2" cy="474.4" r="4.4"><title>Niort · ICU 5,34 km² (14 îlots)</title></circle>
+<circle class="icu" data-slug="roanne" data-nom="Roanne" cx="615.0" cy="500.4" r="4.4"><title>Roanne · ICU 5,18 km² (7 îlots)</title></circle>
+<circle class="icu" data-slug="cholet" data-nom="Cholet" cx="305.9" cy="407.6" r="4.4"><title>Cholet · ICU 4,86 km² (15 îlots)</title></circle>
+<circle class="icu" data-slug="poitiers" data-nom="Poitiers" cx="382.1" cy="451.1" r="4.4"><title>Poitiers · ICU 4,71 km² (10 îlots)</title></circle>
+<circle class="icu" data-slug="pau" data-nom="Pau" cx="337.7" cy="749.2" r="4.4"><title>Pau · ICU 4,70 km² (6 îlots)</title></circle>
+<circle class="icu" data-slug="bourges" data-nom="Bourges" cx="510.7" cy="405.7" r="4.3"><title>Bourges · ICU 4,56 km² (10 îlots)</title></circle>
+<circle class="icu" data-slug="caen" data-nom="Caen" cx="337.7" cy="214.9" r="4.3"><title>Caen · ICU 4,51 km² (18 îlots)</title></circle>
+<circle class="icu" data-slug="chateauroux" data-nom="Châteauroux" cx="466.5" cy="430.2" r="4.3"><title>Châteauroux · ICU 4,49 km² (8 îlots)</title></circle>
+<circle class="icu" data-slug="charleville-mezieres" data-nom="Charleville-Mézières" cx="656.1" cy="162.4" r="4.3"><title>Charleville-Mézières · ICU 4,41 km² (12 îlots)</title></circle>
+<circle class="icu" data-slug="tarbes" data-nom="Tarbes" cx="365.7" cy="754.9" r="4.3"><title>Tarbes · ICU 4,26 km² (5 îlots)</title></circle>
+<circle class="icu" data-slug="henin-carvin" data-nom="Hénin-Carvin" cx="545.1" cy="102.5" r="4.3"><title>Hénin-Carvin · ICU 4,11 km² (8 îlots)</title></circle>
+<circle class="icu" data-slug="troyes" data-nom="Troyes" cx="615.3" cy="295.3" r="4.3"><title>Troyes · ICU 4,02 km² (12 îlots)</title></circle>
+<circle class="icu" data-slug="lens-lievin" data-nom="Lens-Liévin" cx="537.5" cy="101.5" r="4.2"><title>Lens-Liévin · ICU 3,83 km² (15 îlots)</title></circle>
+<circle class="icu" data-slug="douai" data-nom="Douai" cx="553.2" cy="107.1" r="4.2"><title>Douai · ICU 3,75 km² (9 îlots)</title></circle>
+<circle class="icu" data-slug="la-roche-sur-yon" data-nom="La Roche-sur-Yon" cx="271.7" cy="442.9" r="4.2"><title>La Roche-sur-Yon · ICU 3,61 km² (8 îlots)</title></circle>
+<circle class="icu" data-slug="chalon-sur-saone" data-nom="Chalon-sur-Saône" cx="664.0" cy="432.9" r="4.2"><title>Chalon-sur-Saône · ICU 3,59 km² (9 îlots)</title></circle>
+<circle class="icu" data-slug="arras" data-nom="Arras" cx="534.3" cy="114.4" r="4.1"><title>Arras · ICU 3,33 km² (6 îlots)</title></circle>
+<circle class="icu" data-slug="brive-la-gaillarde" data-nom="Brive-la-Gaillarde" cx="456.6" cy="580.1" r="4.1"><title>Brive-la-Gaillarde · ICU 3,31 km² (5 îlots)</title></circle>
+<circle class="icu" data-slug="ajaccio" data-nom="Ajaccio" cx="906.7" cy="874.1" r="4.1"><title>Ajaccio · ICU 3,24 km² (4 îlots)</title></circle>
+<circle class="icu" data-slug="montauban" data-nom="Montauban" cx="445.5" cy="683.7" r="4.1"><title>Montauban · ICU 3,23 km² (5 îlots)</title></circle>
+<circle class="icu" data-slug="annecy" data-nom="Annecy" cx="743.7" cy="512.9" r="4.1"><title>Annecy · ICU 3,12 km² (8 îlots)</title></circle>
+<circle class="icu" data-slug="cherbourg" data-nom="Cherbourg" cx="259.5" cy="174.0" r="4.1"><title>Cherbourg · ICU 3,10 km² (7 îlots)</title></circle>
+<circle class="icu" data-slug="chambery" data-nom="Chambéry" cx="730.5" cy="543.3" r="4.1"><title>Chambéry · ICU 2,99 km² (3 îlots)</title></circle>
+<circle class="icu" data-slug="besancon" data-nom="Besançon" cx="737.1" cy="391.4" r="4.1"><title>Besançon · ICU 2,97 km² (8 îlots)</title></circle>
+<circle class="icu" data-slug="saint-brieuc" data-nom="Saint-Brieuc" cx="188.4" cy="275.7" r="4.1"><title>Saint-Brieuc · ICU 2,84 km² (6 îlots)</title></circle>
+<circle class="icu" data-slug="belfort" data-nom="Belfort" cx="789.5" cy="355.1" r="4.0"><title>Belfort · ICU 2,76 km² (5 îlots)</title></circle>
+<circle class="icu" data-slug="chalons-en-champagne" data-nom="Châlons-en-Champagne" cx="633.4" cy="235.5" r="4.0"><title>Châlons-en-Champagne · ICU 2,63 km² (4 îlots)</title></circle>
+<circle class="icu" data-slug="frejus" data-nom="Fréjus" cx="781.7" cy="736.7" r="4.0"><title>Fréjus · ICU 2,52 km² (10 îlots)</title></circle>
+<circle class="icu" data-slug="vannes" data-nom="Vannes" cx="188.4" cy="353.3" r="4.0"><title>Vannes · ICU 2,47 km² (6 îlots)</title></circle>
+<circle class="icu" data-slug="martigues" data-nom="Martigues" cx="676.1" cy="739.2" r="4.0"><title>Martigues · ICU 2,33 km² (8 îlots)</title></circle>
+<circle class="icu" data-slug="evreux" data-nom="Évreux" cx="432.7" cy="229.1" r="3.9"><title>Évreux · ICU 2,14 km² (4 îlots)</title></circle>
+<circle class="icu" data-slug="melun" data-nom="Melun" cx="527.0" cy="273.3" r="3.9"><title>Melun · ICU 2,14 km² (8 îlots)</title></circle>
+<circle class="icu" data-slug="montbeliard" data-nom="Montbéliard" cx="785.5" cy="366.7" r="3.9"><title>Montbéliard · ICU 2,12 km² (6 îlots)</title></circle>
+<circle class="icu" data-slug="compiegne" data-nom="Compiègne" cx="537.4" cy="193.6" r="3.9"><title>Compiègne · ICU 2,08 km² (4 îlots)</title></circle>
+<circle class="icu" data-slug="creil" data-nom="Creil" cx="515.4" cy="208.0" r="3.8"><title>Creil · ICU 1,74 km² (5 îlots)</title></circle>
+<circle class="icu" data-slug="chartres" data-nom="Chartres" cx="453.8" cy="282.0" r="3.8"><title>Chartres · ICU 1,71 km² (4 îlots)</title></circle>
+<circle class="icu" data-slug="quimper" data-nom="Quimper" cx="104.5" cy="322.6" r="3.8"><title>Quimper · ICU 1,43 km² (7 îlots)</title></circle>
+<circle class="icu" data-slug="beauvais" data-nom="Beauvais" cx="490.8" cy="192.5" r="3.7"><title>Beauvais · ICU 1,29 km² (4 îlots)</title></circle>
+<circle class="icu" data-slug="annemasse" data-nom="Annemasse" cx="750.3" cy="486.2" r="3.6"><title>Annemasse · ICU 0,88 km² (2 îlots)</title></circle>
+        </g>
         <g class="layer-stations">
 <g class="station"><title>Station météo RE2020 de la zone H1a : Trappes (167 m)</title><line x1="480.8" y1="254.5" x2="438.5" y2="272.6"/><circle class="ring" cx="486.4" cy="252.1" r="6"/><circle class="dot" cx="486.4" cy="252.1" r="2.0"/><rect x="357.6" y="272.6" width="117.6" height="19" rx="4"/><text x="363.6" y="285.9"><tspan class="prefixe">☀️ Météo</tspan> Trappes</text></g>
 <g class="station"><title>Station météo RE2020 de la zone H1b : Nancy (212 m)</title><line x1="746.4" y1="254.7" x2="735.0" y2="235.4"/><circle class="ring" cx="749.5" cy="259.9" r="6"/><circle class="dot" cx="749.5" cy="259.9" r="2.0"/><rect x="677.3" y="216.4" width="104.4" height="19" rx="4"/><text x="683.3" y="229.7"><tspan class="prefixe">☀️ Météo</tspan> Nancy</text></g>
@@ -637,6 +784,11 @@ body { margin: 0; }
 <g class="dhlabel"><rect x="427.8" y="730.7" width="167.2" height="22" rx="7"/><text x="511.4" y="741.7">DH méd. 1 103 °C.h</text></g>
         </g>
       </svg>
+      <div class="icu-zoom" id="icu-zoom" hidden>
+        <header><h3 id="icu-titre"></h3><button type="button" id="icu-fermer" aria-label="Fermer">×</button></header>
+        <svg width="0" height="0" style="position:absolute" aria-hidden="true"><defs><clipPath id="z-clip-vignette"><rect width="110" height="80" rx="4"/></clipPath></defs></svg>
+        <div id="icu-corps"></div>
+      </div>
     </div>
 
     <aside>
@@ -648,6 +800,11 @@ body { margin: 0; }
       <details class="box" id="box-layers" open>
         <summary class="panel-title">Couches</summary>
         <div class="toggles">
+          <label class="toggle" for="t-icu">
+            <span>Îlots de chaleur urbains (ICU)<small><svg class="swatch-icu" viewBox="0 0 16 16" aria-hidden="true"><circle cx="8" cy="8" r="6" fill="var(--icu)" fill-opacity=".8"/></svg>88 territoires LCZ du Cerema ; point ∝ surface ICU. Cliquez un point pour le zoom.</small></span>
+            <input type="checkbox" id="t-icu" checked>
+            <span class="track"></span>
+          </label>
           <label class="toggle" for="t-stations">
             <span>Stations météo RE2020<small><svg class="swatch-station" viewBox="0 0 16 16" aria-hidden="true"><circle cx="8" cy="8" r="5.5" fill="var(--surface)" stroke="var(--station)" stroke-width="2"/><circle cx="8" cy="8" r="2" fill="var(--station)"/></svg>Fichiers météo Th-BC / Th-D, une station par zone</small></span>
             <input type="checkbox" id="t-stations" checked>
@@ -709,9 +866,10 @@ body { margin: 0; }
     <p>Zones climatiques : annexe du décret n° 2021-1004 du 29 juillet 2021 (RE2020), découpage départemental. Logements : Insee, recensement de la population 2022 (résidences principales, secondaires, occasionnelles et logements vacants). Contours des départements : IGN Admin Express, via france-geojson (Licence Ouverte). Fleuves, lacs, pays voisins et noms des massifs : Natural Earth (domaine public). Stations météo : stations de référence des fichiers météo RE2020 (Météo-France / ADEME, note technique 2025).</p>
     <p>Altitude : modèle numérique de terrain (~90 m) agrégé à ~500 m, classes 400–800 m et &gt; 800 m, îlots et creux de moins de 70 km² retirés, contour simplifié à ~1 km. Représentation indicative : la classe d'altitude RE2020 d'un projet se détermine à l'altitude réelle du terrain.</p>
     <p>DH (degrés-heures d'inconfort estival) : médiane par zone d'une sélection de logements collectifs conformes de l'open data OPEE (RE2020), extraction du 18/10/2026. Traits de référence à 350 °C.h et 1 250 °C.h. Les couleurs des zones vont du plus clair au plus foncé selon leur DH médian.</p>
+    <p>Îlots de chaleur urbains (ICU) : <a href="https://www.cerema.fr/fr/presse/dossier/zones-climatiques-locales-lcz-outil-libre-service-visualiser">zones climatiques locales (LCZ) du Cerema</a>, images satellites 2022-2023, 88 territoires de plus de 50&nbsp;000 habitants de métropole (Licence Ouverte 2.0). Un îlot réunit les LCZ 1 à 3 (bâti compact) et les LCZ 4 à 6 situées à moins de 15&nbsp;m, sous leur enveloppe convexe ; seuls les îlots d'au moins 10&nbsp;ha sont retenus. Dans le zoom : eau (LCZ G, plans d'eau d'au moins 3&nbsp;ha), contours des communes (france-geojson, simplifiés) et mairie de la commune centre (« Communes et villes de France », data.gouv.fr, Licence Ouverte).</p>
     <p>Polices : Bricolage Grotesque, Public Sans et IBM Plex Mono (licence SIL Open Font License), hébergées avec la page.</p>
     <p class="credit">Carte réalisée avec l'aide du <a href="https://www.ifpeb.fr/nos-expertises/la-technique/le-hub-des-prescripteurs-bas-carbone/">Hub des Prescripteurs Bas Carbone</a>.</p>
-    <p class="version">Version 1.1.8 · générée le 22/10/2026 · <a href="https://github.com/Alliages/zones-climatiques-re2020">code source et historique des versions</a></p>
+    <p class="version">Version 1.2.0 · générée le 22/10/2026 · <a href="https://github.com/Alliages/zones-climatiques-re2020">code source et historique des versions</a></p>
   </footer>
 </div>
 
@@ -725,6 +883,8 @@ const LOGEMENTS = {"H1a": {"l": 10817847, "rp": 9500698}, "H1b": {"l": 3837758, 
 const DH = {"zones": {"H1a": {"m": 619, "n": 399}, "H1b": {"m": 452, "n": 222}, "H1c": {"m": 404, "n": 357}, "H2a": {"m": 216, "n": 75}, "H2b": {"m": 654, "n": 188}, "H2c": {"m": 614, "n": 268}, "H2d": {"m": 897, "n": 49}, "H3": {"m": 1103, "n": 195}}, "all": {"m": 593, "n": 1753}};                 // { zones: { zone → { m: médiane °C.h, n: nb bâtiments } }, all: { m, n } }
 const DH_REFS = [{"v": 350, "court": "pénalité dans le Cep au-delà", "info": "au-delà, pénalité forfaitaire de climatisation dans le Cep"}, {"v": 1250, "court": "DH max", "info": "DH max courant (seuil de conformité)"}];       // traits de référence : [{ v: °C.h, court, info }]
 const DH_SCALE = 1300;     // borne de l'échelle des barres DH (°C.h)
+const ICU_ZOOMS = null;   // encarts ICU intégrés (aperçu) ; null : chargés au clic depuis data/icu/zooms/
+const ICU_LEGENDE = "<div class=\"icu-key\"><span><i style=\"background:var(--icu)\"></i>LCZ 1–3</span><span><i style=\"background:var(--icu);opacity:.55\"></i>LCZ 4–6 voisines</span><span><i style=\"background:var(--icu-bg);outline:1.4px dashed var(--icu)\"></i>Îlots ICU</span><span><i style=\"outline:1px dashed var(--muted)\"></i>Territoire LCZ</span><span><i style=\"outline:1.8px solid var(--ink)\"></i>Commune centre</span></div>";
 const BOX_STORE_KEY = "zones-re2020:boites";   // mémorisation par visiteur des boîtes pliées
 const ZONE_ORDER = ["H1a", "H1b", "H1c", "H2a", "H2b", "H2c", "H2d", "H3"];      // zones dans l'ordre réglementaire (source : build_map.py)
 const NF = new Intl.NumberFormat("fr-FR");
@@ -743,7 +903,7 @@ const dhTotal = document.getElementById("dh-total");
 // Interrupteur → classe CSS posée sur la carte
 const TOGGLES = { "t-stations": "show-stations", "t-context": "show-context", "t-altitude": "show-altitude",
                   "t-cities": "show-cities", "t-depborders": "show-depborders", "t-deps": "show-deps",
-                  "t-dhmap": "show-dhlabels" };
+                  "t-dhmap": "show-dhlabels", "t-icu": "show-icu" };
 let lockedZone = null;            // zone isolée par clic dans la légende
 let activePath = null;            // département mis en avant
 
@@ -901,6 +1061,42 @@ svg.querySelectorAll(".dep").forEach(p => {
   p.addEventListener("mouseenter", () => showDept(p));
   p.addEventListener("click", () => showDept(p));
 });
+
+// ---------------------------------------------------------------------------
+// Îlots de chaleur urbains : encart de zoom au clic sur un point
+// ---------------------------------------------------------------------------
+const icuZoom = document.getElementById("icu-zoom");
+const icuCorps = document.getElementById("icu-corps");
+const icuCache = Object.assign({}, ICU_ZOOMS || {});   // encarts déjà chargés
+let icuOn = null;                                      // point sélectionné
+function fermerIcu() { icuZoom.hidden = true; if (icuOn) icuOn.classList.remove("on"); icuOn = null; }
+function afficherIcu(html) {
+  // Légende insérée entre le dessin et la ligne des surfaces
+  icuCorps.innerHTML = html.replace('<p class="icu-surf">', ICU_LEGENDE + '<p class="icu-surf">');
+}
+async function ouvrirIcu(c) {
+  if (icuOn) icuOn.classList.remove("on");
+  icuOn = c; c.classList.add("on");
+  const slug = c.dataset.slug;
+  document.getElementById("icu-titre").textContent = c.dataset.nom;
+  icuZoom.hidden = false;
+  if (!(slug in icuCache)) {
+    icuCorps.innerHTML = "<p>Chargement…</p>";
+    try {
+      const r = await fetch(`data/icu/zooms/${slug}.html`);
+      if (!r.ok) throw new Error(r.status);
+      icuCache[slug] = await r.text();
+    } catch (e) {
+      icuCorps.innerHTML = "<p>Zoom indisponible pour le moment.</p>";
+      return;
+    }
+  }
+  if (icuOn === c) afficherIcu(icuCache[slug]);        // l'utilisateur n'a pas cliqué ailleurs entre-temps
+}
+svg.querySelectorAll(".icu").forEach(c => c.addEventListener("click", ev => { ev.stopPropagation(); ouvrirIcu(c); }));
+document.getElementById("icu-fermer").addEventListener("click", fermerIcu);
+document.addEventListener("keydown", e => { if (e.key === "Escape") fermerIcu(); });
+document.getElementById("t-icu").addEventListener("change", e => { if (!e.target.checked) fermerIcu(); });
 
 // État initial : une fiche remplie plutôt qu'un panneau vide
 showDept(svg.querySelector('.dep[data-code="33"]'));

@@ -9,7 +9,7 @@ Liste des modifications à apporter dans les prochaines versions. Chaque ligne c
 - [x] Afficher les DH médians par zone issus de l'open data OPEE (→ 1.1.0, 1.1.1)
 - [x] Couche « DH médian sur la carte » (→ 1.1.2)
 - [ ] DH médian par département (nécessite le département ou la commune dans l'extraction OPEE)
-- [ ] Préciser les îlots de chaleur urbains (ICU) : couche « Zones soumises à ICU » à partir des zones climatiques locales (LCZ) du Cerema, métropole
+- [x] Îlots de chaleur urbains (ICU) d'après les zones climatiques locales (LCZ) du Cerema, 88 territoires de métropole (→ 1.2.0)
 
 ## Météo
 - [x] Stations météo de référence RE2020 sur la carte (→ 1.1.6)

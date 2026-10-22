@@ -26,6 +26,7 @@ Liste des modifications à apporter dans les prochaines versions. Chaque ligne c
 ## Interface
 - [x] Favicon de l'application (→ 1.0.2)
 - [x] Boîtes dépliables, nouvel ordre de la colonne (→ 1.1.0)
+- [x] Couche « Contours des départements », pour n'afficher que les limites des zones (→ 1.1.8)
 - [ ] Bouton « Télécharger la carte (PNG) » (polices déjà hébergées dans le dépôt depuis la 1.1.3)
 - [ ] Option de couleurs sombres pour la palette des zones
 - [ ] Ajouter une partie explication

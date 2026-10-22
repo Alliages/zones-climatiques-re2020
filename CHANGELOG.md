@@ -7,6 +7,13 @@ Numérotation [SemVer](https://semver.org/lang/fr/) :
 
 La version est définie par la constante `VERSION` en tête de `scripts/build_map.py`, affichée en pied de page et reportée en tag git (`vX.Y.Z`).
 
+## [1.1.8] — 22/10/2026
+
+Contours des départements masquables.
+
+### Ajouté
+- Couche « Contours des départements » dans la boîte Couches, visible par défaut : désactivée, les départements prennent un trait de la couleur de leur zone (aucun liseré entre voisins) et seules les limites des zones restent tracées. Le survol, le département sélectionné et la fiche département sont inchangés.
+
 ## [1.1.6] — 18/10/2026
 
 Stations météo de référence RE2020 et températures horaires par zone.

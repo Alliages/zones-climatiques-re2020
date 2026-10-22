@@ -271,7 +271,7 @@ footer a { color: var(--accent); }
 
   <div class="layout">
     <div class="map">
-      <svg id="map" class="show-stations show-context show-altitude show-cities" viewBox="__VIEWBOX__" role="img" aria-label="Carte des zones climatiques RE2020 par département">
+      <svg id="map" class="show-stations show-depborders show-context show-altitude show-cities" viewBox="__VIEWBOX__" role="img" aria-label="Carte des zones climatiques RE2020 par département">
         <defs>
           <linearGradient id="sea" x1="0" y1="0" x2="1" y2="1">
             <stop offset="0" style="stop-color: var(--sea-deep)"/>
@@ -363,6 +363,11 @@ __DHLABELS__
             <input type="checkbox" id="t-dhmap">
             <span class="track"></span>
           </label>
+          <label class="toggle" for="t-depborders">
+            <span>Contours des départements<small>Sans contours, seules les limites des zones restent tracées</small></span>
+            <input type="checkbox" id="t-depborders" checked>
+            <span class="track"></span>
+          </label>
           <label class="toggle" for="t-deps">
             <span>Noms des départements</span>
             <input type="checkbox" id="t-deps">
@@ -437,7 +442,7 @@ const dhBox = document.getElementById("dh");
 const dhTotal = document.getElementById("dh-total");
 // Interrupteur → classe CSS posée sur la carte
 const TOGGLES = { "t-stations": "show-stations", "t-context": "show-context", "t-altitude": "show-altitude",
-                  "t-cities": "show-cities", "t-deps": "show-deps",
+                  "t-cities": "show-cities", "t-depborders": "show-depborders", "t-deps": "show-deps",
                   "t-dhmap": "show-dhlabels" };
 let lockedZone = null;            // zone isolée par clic dans la légende
 let activePath = null;            // département mis en avant

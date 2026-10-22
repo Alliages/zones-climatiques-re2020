@@ -29,7 +29,7 @@ from geo_utils import (Projection, chemin_svg, fusionner, lire_json, lire_table,
 # ---------------------------------------------------------------------------
 # Paramètres (regroupés en tête pour la lisibilité)
 # ---------------------------------------------------------------------------
-VERSION = "1.1.6"          # version de la carte (SemVer) — à reporter dans CHANGELOG.md et en tag git
+VERSION = "1.1.8"          # version de la carte (SemVer) — à reporter dans CHANGELOG.md et en tag git
 BUILD_DATE = datetime.date.today().strftime("%d/%m/%Y")   # date de génération affichée en pied de page
 REPO_URL = "https://github.com/Alliages/zones-climatiques-re2020"
 
@@ -351,7 +351,12 @@ def css_zones(dh):
     couleurs = "\n".join(f"  --{z}: {PALETTE_ZONES[i]};" for i, z in enumerate(ordre))
     regles = "\n".join(f".z-{z} {{ fill: var(--{z}); }}" for z in ZONES)
     focus = ",\n".join(f'svg[data-focus="{z}"] .z-{z}' for z in ZONES) + " { opacity: 1; }"
-    return couleurs, regles + "\n" + focus
+    # Couche « Contours des départements » désactivée : trait de la couleur de la zone
+    # (pas de liseré d'anticrénelage entre voisins) ; survol et sélection gardent leur trait foncé
+    sans_contours = "\n".join(
+        f".map svg:not(.show-depborders) .dep.z-{z}:not(:hover):not(.active) {{ stroke: var(--{z}); }}"
+        for z in ZONES)
+    return couleurs, regles + "\n" + focus + "\n" + sans_contours
 
 
 # ---------------------------------------------------------------------------

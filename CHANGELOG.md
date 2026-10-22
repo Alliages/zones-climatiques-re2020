@@ -7,6 +7,16 @@ Numérotation [SemVer](https://semver.org/lang/fr/) :
 
 La version est définie par la constante `VERSION` en tête de `scripts/build_map.py`, affichée en pied de page et reportée en tag git (`vX.Y.Z`).
 
+## [2.0.0] — 22/10/2026
+
+Courbes des fichiers météo RE2020.
+
+### Ajouté
+- Au clic sur une station météo (souris ou clavier), encart des courbes de température de la zone posé sur toute la carte : fichier consommations (Th-BC, climat moyen) et fichier inconfort d'été (Th-D, canicule), température moyenne de chaque journée d'été puis journée la plus chaude heure par heure. Onglets des 8 stations pour passer de l'une à l'autre ; clic sur l'image pour l'ouvrir en grand ; fermeture par ×, Échap, nouveau clic sur la station ou en masquant la couche Stations. Sur téléphone, l'encart passe sous la carte.
+- Ouverture aussi depuis le sous-titre (lien « ☀️ courbes de température ») et depuis la pastille de zone de la fiche département.
+- Un seul encart à la fois : ouvrir les courbes ferme le zoom ICU, et inversement.
+- `data/meteo/panneaux/meteo_dh_<zone>.png` : les 8 panneaux, chargés au clic.
+
 ## [1.2.0] — 22/10/2026
 
 Îlots de chaleur urbains (ICU) d'après les zones climatiques locales (LCZ) du Cerema.

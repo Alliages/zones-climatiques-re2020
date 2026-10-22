@@ -14,7 +14,8 @@ Liste des modifications à apporter dans les prochaines versions. Chaque ligne c
 ## Météo
 - [x] Stations météo de référence RE2020 sur la carte (→ 1.1.6)
 - [x] Températures horaires Th-BC / Th-D par zone en CSV (→ 1.1.6)
-- [ ] Afficher les courbes des fichiers météo
+- [x] Afficher les courbes des fichiers météo : encart au clic sur une station, onglets des 8 stations (→ 2.0.0)
+- [ ] Version sombre des courbes météo (les PNG restent sur fond clair en thème sombre)
 - [ ] Créer des liens vers le wiki des données météo : https://github.com/Alliages/meteo/wiki/WIKI-Donn%C3%A9es-M%C3%A9t%C3%A9o
 
 ## Cartographie

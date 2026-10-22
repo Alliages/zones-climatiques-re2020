@@ -3,7 +3,8 @@
 Couches : mers en dégradé, pays voisins, départements, limites de zones, lacs,
 fleuves, altitude (classes RE2020 > 400 m et > 800 m), libellés (zones, villes,
 départements, pays, mers, massifs), DH médian par zone sur la carte,
-stations météo de référence RE2020 (une par zone), îlots de chaleur urbains (ICU, un point
+stations météo de référence RE2020 (une par zone, encart des courbes météo au clic,
+images data/meteo/panneaux/meteo_dh_<zone>.png), îlots de chaleur urbains (ICU, un point
 par territoire LCZ du Cerema, encart de zoom chargé au clic depuis data/icu/zooms/).
 Colonne : fiche département, couches, zones, DH médians (open data OPEE),
 logements par zone (INSEE, RP 2022).
@@ -30,7 +31,7 @@ from geo_utils import (Projection, chemin_svg, fusionner, lire_json, lire_table,
 # ---------------------------------------------------------------------------
 # Paramètres (regroupés en tête pour la lisibilité)
 # ---------------------------------------------------------------------------
-VERSION = "1.2.0"          # version de la carte (SemVer) — à reporter dans CHANGELOG.md et en tag git
+VERSION = "2.0.0"         # version de la carte (SemVer) — à reporter dans CHANGELOG.md et en tag git
 BUILD_DATE = datetime.date.today().strftime("%d/%m/%Y")   # date de génération affichée en pied de page
 REPO_URL = "https://github.com/Alliages/zones-climatiques-re2020"
 
@@ -291,9 +292,11 @@ def couche_stations(proj, reperes):
         k = min(w / 2 / abs(s["dx"]) if s["dx"] else math.inf,
                 STATION_H / 2 / abs(s["dy"]) if s["dy"] else math.inf)
         x1, y1 = cx - s["dx"] * k, cy - s["dy"] * k
-        info = f'Station météo RE2020 de la zone {s["zone"]} : {s["nom"]} ({s["alt"]} m)'
+        info = f'Station météo RE2020 de la zone {s["zone"]} : {s["nom"]} ({s["alt"]} m) · cliquez pour les courbes'
+        # Cliquable (souris et clavier) : ouvre l'encart des courbes météo de la zone
         svg.append(
-            f'<g class="station"><title>{info}</title>'
+            f'<g class="station" data-zone="{s["zone"]}" data-nom="{s["nom"]}" tabindex="0" role="button" '
+            f'aria-label="Courbes météo de {s["nom"]} (zone {s["zone"]})"><title>{info}</title>'
             f'<line x1="{x0:.1f}" y1="{y0:.1f}" x2="{x1:.1f}" y2="{y1:.1f}"/>'
             f'<circle class="ring" cx="{x:.1f}" cy="{y:.1f}" r="{STATION_R}"/>'
             f'<circle class="dot" cx="{x:.1f}" cy="{y:.1f}" r="{STATION_R / 3:.1f}"/>'

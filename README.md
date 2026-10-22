@@ -16,9 +16,10 @@ Version actuelle : **1.1.6**. Historique dans [CHANGELOG.md](CHANGELOG.md), évo
 - Le parc de logements par zone, en millions et en part du total métropolitain.
 - Des boîtes dépliables dans la colonne de droite, dont l'état est mémorisé par le navigateur.
 - Les îlots de chaleur urbains (ICU) de 88 territoires de plus de 50 000 habitants, d'après les zones climatiques locales (LCZ) du Cerema : un point par territoire, proportionnel à la surface ICU ; au clic, un zoom sur la commune centre (îlots, communes voisines, cours et plans d'eau, mairie) avec la surface ICU et celle de la ville.
+- Les courbes de température des fichiers météo RE2020 (Th-BC climat moyen, Th-D canicule) de chaque station : été jour par jour et journée la plus chaude heure par heure. Elles s'ouvrent au clic sur une station, sur le lien du sous-titre ou sur la pastille de zone de la fiche département ; des onglets passent d'une station à l'autre.
 - Des couches activables : îlots de chaleur urbains, stations météo de référence RE2020 (une par zone), villes, noms des départements (masqués par défaut), DH médian sur la carte (masqué par défaut), mers, fleuves et pays voisins, altitude (400–800 m et plus de 800 m).
 
-La page est autonome et légère : environ 245 Ko (66 Ko compressés) plus 78 Ko de polices hébergées dans le dépôt, sans appel à un service tiers. Les zooms ICU (40 Ko en moyenne, 500 Ko pour Paris) ne sont chargés qu'au clic.
+La page est autonome et légère : environ 245 Ko (66 Ko compressés) plus 78 Ko de polices hébergées dans le dépôt, sans appel à un service tiers. Les zooms ICU (40 Ko en moyenne, 500 Ko pour Paris) et les courbes météo (PNG d'environ 410 Ko) ne sont chargés qu'au clic.
 
 ## Fichiers
 
@@ -32,6 +33,7 @@ La page est autonome et légère : environ 245 Ko (66 Ko compressés) plus 78 Ko
 | `data/dh_median_opee.csv` | DH médian et Q3 par zone, nombre de bâtiments (export OPEE, `;` et virgule décimale) |
 | `data/reperes.json` | Stations météo, villes, libellés des pays et des mers, fleuves et massifs affichés |
 | `data/meteo/meteo_<zone>.csv` | Température extérieure horaire (°C) : `heure`, `th_bc` (climat moyen), `th_d` (canicule) ; `;` et virgule décimale |
+| `data/meteo/panneaux/meteo_dh_<zone>.png` | Courbes de température Th-BC / Th-D de la station de la zone, affichées au clic |
 | `data/altitude_re2020.geojson` | Classes d'altitude > 400 m et > 800 m (issues du MNT, simplifiées) |
 | `data/icu/territoires.json` | Par territoire LCZ : centre, surface ICU, nombre d'îlots, commune centre et sa surface |
 | `data/icu/zooms/<territoire>.html` | Encart de zoom (SVG) chargé au clic sur un point ICU |

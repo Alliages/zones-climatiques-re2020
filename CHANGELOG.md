@@ -7,6 +7,17 @@ Numérotation [SemVer](https://semver.org/lang/fr/) :
 
 La version est définie par la constante `VERSION` en tête de `scripts/build_map.py`, affichée en pied de page et reportée en tag git (`vX.Y.Z`).
 
+## [2.0.1] — 14/11/2026
+
+Hub des Prescripteurs Bas Carbone dans l'en-tête.
+
+### Ajouté
+- Logo du Hub des Prescripteurs Bas Carbone en haut à droite de l'en-tête, avec lien vers sa page IFPEB (`logo-hub-prescripteurs-bas-carbone.png`, 180 × 238 px).
+- Mention « Hub des Prescripteurs Bas Carbone », avec le même lien, après « 96 départements » dans le surtitre.
+
+### Modifié
+- Lien vers le Hub mis à jour (https://www.ifpeb.fr/travaux/le-hub-des-prescripteurs-bas-carbone/) dans l'en-tête, le pied de page et le README ; adresse réglée par `HUB_URL` en tête de `build_map.py`.
+
 ## [2.0.0] — 22/10/2026
 
 Courbes des fichiers météo RE2020.

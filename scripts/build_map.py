@@ -31,9 +31,10 @@ from geo_utils import (Projection, chemin_svg, fusionner, lire_json, lire_table,
 # ---------------------------------------------------------------------------
 # Paramètres (regroupés en tête pour la lisibilité)
 # ---------------------------------------------------------------------------
-VERSION = "2.0.0"         # version de la carte (SemVer) — à reporter dans CHANGELOG.md et en tag git
+VERSION = "2.0.1"         # version de la carte (SemVer) — à reporter dans CHANGELOG.md et en tag git
 BUILD_DATE = datetime.date.today().strftime("%d/%m/%Y")   # date de génération affichée en pied de page
 REPO_URL = "https://github.com/Alliages/zones-climatiques-re2020"
+HUB_URL = "https://www.ifpeb.fr/travaux/le-hub-des-prescripteurs-bas-carbone/"   # en-tête (logo, mention) et pied de page
 
 # Fichiers (chemins relatifs à la racine du dépôt)
 RACINE = os.path.normpath(os.path.join(os.path.dirname(os.path.abspath(__file__)), ".."))
@@ -51,6 +52,7 @@ INDEX_PATH = os.path.join(RACINE, "index.html")
 FAVICON_SVG = "favicon.svg"             # navigateurs récents
 FAVICON_PNG = "favicon-32.png"          # repli pour les navigateurs sans prise en charge du SVG
 APPLE_TOUCH_ICON = "apple-touch-icon.png"   # écran d'accueil iPhone / iPad (180 × 180 px)
+LOGO_HUB = "logo-hub-prescripteurs-bas-carbone.png"   # logo du Hub, en haut à droite (180 × 238 px)
 
 # Zones climatiques, dans l'ordre réglementaire (source unique : injectée dans la page)
 ZONES = ["H1a", "H1b", "H1c", "H2a", "H2b", "H2c", "H2d", "H3"]
@@ -478,6 +480,7 @@ def main():
         "__DH_REFS__": json.dumps(DH_REFS, ensure_ascii=False), "__DH_REFS_TEXTE__": refs_texte,
         "__DH_SCALE__": str(DH_SCALE_MAX),
         "__VERSION__": VERSION, "__BUILD_DATE__": BUILD_DATE, "__REPO_URL__": REPO_URL,
+        "__HUB_URL__": HUB_URL, "__LOGO_HUB__": LOGO_HUB,
         "__ZONES__": json.dumps(ZONES),
         "__DATA__": json.dumps(data, ensure_ascii=False), "__COUNTS__": json.dumps(counts),
         "__LOGEMENTS__": json.dumps(logements),

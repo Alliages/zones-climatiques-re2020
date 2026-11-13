@@ -92,6 +92,13 @@ h1 {
   line-height: 1.05; margin: 0; text-wrap: balance; letter-spacing: -.01em;
 }
 .lede { margin: 0; color: var(--muted); max-width: 62ch; }
+/* Logo du Hub des Prescripteurs Bas Carbone, en haut à droite de l'en-tête */
+.wrap > header { grid-template-columns: minmax(0, 1fr) auto; column-gap: 24px; }
+.wrap > header > :not(.logo-hub) { grid-column: 1; }
+.logo-hub { grid-column: 2; grid-row: 1 / span 3; align-self: start; display: block; line-height: 0; }
+.logo-hub img { width: 88px; height: auto; border-radius: 6px; }
+.eyebrow a { color: inherit; text-decoration: underline; text-underline-offset: 2px; }
+@media (max-width: 600px) { .logo-hub img { width: 56px; } }
 
 /* Grille principale */
 .layout { display: grid; grid-template-columns: minmax(0, 1fr) 290px; gap: 28px; align-items: start; }
@@ -389,9 +396,10 @@ body { margin: 0; }
 
 <div class="wrap">
   <header>
-    <span class="eyebrow">RE2020 · France métropolitaine · 96&nbsp;départements</span>
+    <span class="eyebrow">RE2020 · France métropolitaine · 96&nbsp;départements · <a href="https://www.ifpeb.fr/travaux/le-hub-des-prescripteurs-bas-carbone/">Hub des Prescripteurs Bas Carbone</a></span>
     <h1>Zones climatiques RE2020</h1>
     <p class="lede">Chaque département est rattaché à l'une des huit zones climatiques, de H1a au nord à H3 sur le littoral méditerranéen. Survolez un département pour sa fiche, cliquez une zone de la légende pour l'isoler. Chaque station météo ouvre les <button type="button" class="lien-meteo" data-zone="H1a">☀️ courbes de température</button> de sa zone.</p>
+    <a class="logo-hub" href="https://www.ifpeb.fr/travaux/le-hub-des-prescripteurs-bas-carbone/" title="Hub des Prescripteurs Bas Carbone"><img src="logo-hub-prescripteurs-bas-carbone.png" alt="Hub des Prescripteurs Bas Carbone" width="180" height="238"></a>
   </header>
 
   <div class="layout">
@@ -901,8 +909,8 @@ body { margin: 0; }
     <p>Îlots de chaleur urbains (ICU) : <a href="https://www.cerema.fr/fr/presse/dossier/zones-climatiques-locales-lcz-outil-libre-service-visualiser">zones climatiques locales (LCZ) du Cerema</a>, images satellites 2022-2023, 88 territoires de plus de 50&nbsp;000 habitants de métropole (Licence Ouverte 2.0). Un îlot réunit les LCZ 1 à 3 (bâti compact) et les LCZ 4 à 6 situées à moins de 15&nbsp;m, sous leur enveloppe convexe ; seuls les îlots d'au moins 10&nbsp;ha sont retenus. Dans le zoom : eau (LCZ G, plans d'eau d'au moins 3&nbsp;ha), contours des communes (france-geojson, simplifiés) et mairie de la commune centre (« Communes et villes de France », data.gouv.fr, Licence Ouverte).</p>
     <p>Polices : Bricolage Grotesque, Public Sans et IBM Plex Mono (licence SIL Open Font License), hébergées avec la page.</p>
     <p>Pour trouver les seuils RE2020 d'un projet (Bbio, Cep, Ic, DH…) à partir de son département et de son altitude : <a href="https://seuils-re2020.streamlit.app/">Seuils RE2020</a>. Pour lire les degrés-heures et les nuits tropicales d'un fichier météo : <a href="https://vulgarisateurdh.streamlit.app/">Météo &amp; Chaleur</a>. Pour afficher ce qu'il y a dans un RSEE : <a href="https://alliages.github.io/lecteur_RSEE/">Lecteur RSEE</a>.</p>
-    <p class="credit">Carte réalisée avec l'aide du <a href="https://www.ifpeb.fr/nos-expertises/la-technique/le-hub-des-prescripteurs-bas-carbone/">Hub des Prescripteurs Bas Carbone</a>.</p>
-    <p class="version">Version 2.0.0 · générée le 10/11/2026 · <a href="https://github.com/Alliages/zones-climatiques-re2020">code source et historique des versions</a></p>
+    <p class="credit">Carte réalisée avec l'aide du <a href="https://www.ifpeb.fr/travaux/le-hub-des-prescripteurs-bas-carbone/">Hub des Prescripteurs Bas Carbone</a>.</p>
+    <p class="version">Version 2.0.1 · générée le 14/11/2026 · <a href="https://github.com/Alliages/zones-climatiques-re2020">code source et historique des versions</a></p>
   </footer>
 </div>
 

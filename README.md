@@ -4,7 +4,7 @@ Carte interactive des 96 départements de France métropolitaine colorés selon 
 
 **Voir la carte : https://alliages.github.io/zones-climatiques-re2020/**
 
-Réalisée avec l'aide du [Hub des Prescripteurs Bas Carbone](https://www.ifpeb.fr/nos-expertises/la-technique/le-hub-des-prescripteurs-bas-carbone/).
+Réalisée avec l'aide du [Hub des Prescripteurs Bas Carbone](https://www.ifpeb.fr/travaux/le-hub-des-prescripteurs-bas-carbone/).
 
 Version actuelle : **1.1.6**. Historique dans [CHANGELOG.md](CHANGELOG.md), évolutions prévues dans [ROADMAP.md](ROADMAP.md).
 
